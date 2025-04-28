@@ -19,6 +19,8 @@
 - [部署指南](#部署指南)
 - [Kubernetes 部署](#kubernetes部署)
 - [性能对比](#性能对比)
+- [开发流程指南](#开发流程指南)
+- [参考资源](#参考资源)
 - [常见问题](#常见问题)
 
 ## 项目介绍
@@ -29,6 +31,18 @@ Mall-Go 项目是对原 Java 版本 mall 电商系统的 Go 语言重构版本�
 
 - 前台商城系统：首页门户、商品推荐、商品搜索、商品展示、购物车、订单流程、会员中心、客户服务等
 - 后台管理系统：商品管理、订单管理、会员管理、促销管理、运营管理、内容管理、统计报表、权限管理等
+
+### 业务架构图
+
+参考 `script/pos/业务架构图.pos` 文件，mall-go 系统的业务架构如下：
+
+![业务架构图](../script/resource/mall_business_arch.png)
+
+### 系统架构图
+
+参考 `script/pos/系统架构图.pos` 文件，mall-go 系统的整体微服务架构如下：
+
+![系统架构图](../script/resource/mall_system_arch.png)
 
 ## Go 语言相比 Java 的优势
 
@@ -100,7 +114,7 @@ func processOrders(orders []Order) {
 # Go版本的Dockerfile示例 - 更小、更简单
 FROM golang:1.20-alpine AS builder
 WORKDIR /app
-COPY . ./
+COPY . ./ 
 RUN go build -o mall-admin ./cmd/admin
 
 FROM alpine:latest
@@ -116,7 +130,7 @@ CMD ["./mall-admin"]
 # Java版本的Dockerfile示例
 FROM maven:3.8-openjdk-8 AS builder
 WORKDIR /app
-COPY pom.xml ./
+COPY pom.xml ./ 
 COPY src ./src
 RUN mvn package -DskipTests
 
@@ -1126,7 +1140,7 @@ product-service/
 
 ## 数据库设计
 
-Go 版本将保持与原 Java 版本相同的数据库结构，可直接使用 mall 项目中的 `document/sql/mall.sql`创建数据库表。
+Go 版本将保持与原 Java 版本相同的数据库结构，可直接使用 mall 项目中的 `script/sql/mall.sql`创建数据库表。
 
 ## 模块实现
 
@@ -1832,84 +1846,59 @@ Go 版本的 mall 项目将遵循 RESTful API 设计规范，与原 Java 版本�
 
 ## 部署指南
 
-### 微服务部署
+### Docker 部署
 
-微服务架构的 mall-go 项目需要更复杂的部署策略，以下提供 Kubernetes 部署方案：
+mall-go 项目提供了完整的 Docker 部署配置，可以通过 Docker Compose 一键部署整个系统及其依赖的基础设施。
 
-#### Kubernetes 部署
+相关脚本和配置文件位于 `script/docker` 目录下：
 
-为每个微服务创建 Kubernetes 部署配置：
+- `docker-compose-app.yml`: 应用服务的 Docker Compose 配置
+- `docker-compose-env.yml`: 基础设施环境的 Docker Compose 配置
+- `nginx.conf`: Nginx 配置文件
 
-```yaml
-# deployments/kubernetes/product-service.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: product-service
-  labels:
-    app: product-service
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: product-service
-  template:
-    metadata:
-      labels:
-        app: product-service
-    spec:
-      containers:
-        - name: product-service
-          image: mall-go/product-service:latest
-          ports:
-            - containerPort: 8080
-              name: http
-            - containerPort: 9090
-              name: grpc
-          env:
-            - name: SERVICE_NAME
-              value: "product-service"
-            - name: CONSUL_ADDR
-              value: "consul:8500"
-            - name: NACOS_ADDR
-              value: "nacos-server:8848"
-            - name: NACOS_NAMESPACE
-              value: "mall-go"
-          resources:
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /ready
-              port: 8080
-            initialDelaySeconds: 5
-            periodSeconds: 5
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: product-service
-spec:
-  selector:
-    app: product-service
-  ports:
-    - port: 8080
-      name: http
-      targetPort: 8080
-    - port: 9090
-      name: grpc
-      targetPort: 9090
-  type: ClusterIP
+#### 部署基础环境
+
+```bash
+cd script/docker
+docker-compose -f docker-compose-env.yml up -d
+```
+
+这将启动以下基础服务：
+- MySQL
+- Redis
+- RabbitMQ
+- Elasticsearch
+- Kibana
+- Logstash
+- Consul
+- Nacos
+
+#### 部署应用服务
+
+```bash
+cd script/docker
+docker-compose -f docker-compose-app.yml up -d
+```
+
+这将启动所有微服务应用。
+
+### 单个服务部署
+
+可以使用 `script/sh` 目录下的脚本单独部署某个服务：
+
+```bash
+cd script/sh
+./mall-admin.sh   # 部署后台管理服务
+./mall-portal.sh  # 部署前台门户服务
+./mall-search.sh  # 部署搜索服务
+```
+
+### 生产环境构建
+
+使用 `script/sh/Dockerfile` 进行生产环境镜像构建：
+
+```bash
+docker build -t mall-go/admin-service:latest -f script/sh/Dockerfile --build-arg SERVICE=admin-service .
 ```
 
 ## Kubernetes 部署
@@ -1921,44 +1910,26 @@ mall-go 项目采用 Kubernetes 作为容器编排平台，实现自动化部署
 在 Kubernetes 中部署 mall-go 微服务架构，整体架构如下：
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Kubernetes Cluster                           │
-│                                                                  │
-│  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐            │
-│  │  Namespace  │   │  Namespace  │   │  Namespace  │            │
-│  │  mall-prod  │   │  mall-test  │   │ mall-infra  │            │
-│  │             │   │             │   │             │            │
-│  │ ┌─────────┐ │   │ ┌─────────┐ │   │ ┌─────────┐ │            │
-│  │ │Frontend │ │   │ │Frontend │ │   │ │ MySQL   │ │            │
-│  │ │Services │ │   │ │Services │ │   │ │         │ │            │
-│  │ └─────────┘ │   │ └─────────┘ │   │ └─────────┘ │            │
-│  │             │   │             │   │             │            │
-│  │ ┌─────────┐ │   │ ┌─────────┐ │   │ ┌─────────┐ │            │
-│  │ │Backend  │ │   │ │Backend  │ │   │ │ Redis   │ │            │
-│  │ │Services │ │   │ │Services │ │   │ │         │ │            │
-│  │ └─────────┘ │   │ └─────────┘ │   │ └─────────┘ │            │
-│  │             │   │             │   │             │            │
-│  │ ┌─────────┐ │   │ ┌─────────┐ │   │ ┌─────────┐ │            │
-│  │ │API      │ │   │ │API      │ │   │ │RabbitMQ │ │            │
-│  │ │Gateway  │ │   │ │Gateway  │ │   │ │         │ │            │
-│  │ └─────────┘ │   │ └─────────┘ │   │ └─────────┘ │            │
-│  │             │   │             │   │             │            │
-│  │ ┌─────────┐ │   │ ┌─────────┐ │   │ ┌─────────┐ │            │
-│  │ │Istio    │ │   │ │Istio    │ │   │ │Elastic- │ │            │
-│  │ │Sidecars │ │   │ │Sidecars │ │   │ │search   │ │            │
-│  │ └─────────┘ │   │ └─────────┘ │   │ └─────────┘ │            │
-│  └─────────────┘   └─────────────┘   └─────────────┘            │
-│                                                                  │
-│  ┌─────────────────────────────────────────────────────────┐    │
-│  │                   Istio Service Mesh                     │    │
-│  └─────────────────────────────────────────────────────────┘    │
-│                                                                  │
-│  ┌─────────────────────────────────────────────────────────┐    │
-│  │                 Monitoring & Logging                     │    │
-│  │   (Prometheus, Grafana, ELK Stack, Jaeger, Kiali)        │    │
-│  └─────────────────────────────────────────────────────────┘    │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────┐   ┌─────────────────────┐   ┌─────────────────────┐
+│                     │   │                     │   │                     │
+│    AWS EKS Cluster  │   │   Azure AKS Cluster │   │ On-Premise Cluster  │
+│                     │   │                     │   │                     │
+│  ┌─────────────┐    │   │  ┌─────────────┐    │   │  ┌─────────────┐    │
+│  │ API Gateway │    │   │  │  Admin      │    │   │  │ Data        │    │
+│  │ & Portal UI │    │   │  │  Services   │    │   │  │ Services    │    │
+│  └─────────────┘    │   │  └─────────────┘    │   │  └─────────────┘    │
+│                     │   │                     │   │                     │
+└──────────┬──────────┘   └──────────┬──────────┘   └──────────┬──────────┘
+           │                         │                         │
+           │                         │                         │
+           └─────────────────────────┼─────────────────────────┘
+                                     │
+                              ┌──────▼─────┐
+                              │            │
+                              │  Service   │
+                              │   Mesh     │
+                              │            │
+                              └────────────┘
 ```
 
 ### 2. Kubernetes 资源配置
@@ -1967,8 +1938,7 @@ mall-go 项目在 Kubernetes 中使用以下资源类型进行部署：
 
 - **Namespace**: 隔离不同环境（开发、测试、生产）和基础设施
 - **Deployment**: 管理微服务的 Pod 副本集
-- **StatefulSet**: 管理有状态应用（如数据库）
-- **Service**: 提供微服务访问入口
+- **StatefulSet**: 管理有状态应用（如数据库）- **Service**: 提供微服务访问入口
 - **Ingress**: 管理外部 HTTP/HTTPS 访问
 - **ConfigMap**: 存储非敏感配置信息
 - **Secret**: 安全地存储敏感信息（如密码、密钥）
@@ -1988,21 +1958,21 @@ metadata:
   name: mall-dev
   labels:
     environment: development
----
+--- 
 apiVersion: v1
 kind: Namespace
 metadata:
   name: mall-test
   labels:
     environment: testing
----
+--- 
 apiVersion: v1
 kind: Namespace
 metadata:
   name: mall-prod
   labels:
     environment: production
----
+--- 
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -2032,7 +2002,7 @@ data:
       host: mysql.mall-infra.svc.cluster.local
       port: 3306
       name: mall
----
+--- 
 # deployments/kubernetes/secrets/product-service-secrets.yaml
 apiVersion: v1
 kind: Secret
@@ -2067,7 +2037,7 @@ spec:
         protocol: HTTP
       hosts:
         - "mall.example.com"
----
+--- 
 # deployments/kubernetes/istio/virtual-service.yaml
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -2143,7 +2113,7 @@ spec:
   storageClassName: standard
   hostPath:
     path: /data/mysql
----
+--- 
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -2387,6 +2357,51 @@ Kubernetes 允许 mall-go 系统轻松实现多云和混合云部署：
 | 容器启动时间     | 10-15 秒  | 1-2 秒   | 快 7-8 倍 |
 | CI/CD 流水线耗时 | 8-10 分钟 | 2-3 分钟 | 快 3-4 倍 |
 
+## 开发流程指南
+
+参考 `script/reference/dev_flow.md` 文件，mall-go 项目开发流程如下：
+
+![开发流程图](../script/resource/mall_dev_flow.png)
+
+1. **需求分析**：明确用户需求和系统功能
+2. **概要设计**：制定系统架构和模块划分
+3. **详细设计**：设计各模块的具体实现方案
+4. **编码实现**：根据设计文档进行编码
+5. **单元测试**：对各模块进行单元测试
+6. **集成测试**：对系统进行集成测试
+7. **部署上线**：将系统部署到生产环境
+8. **维护升级**：定期维护和升级系统
+
+## 参考资源
+
+mall-go 项目提供了丰富的参考资源，位于 `script` 目录下：
+
+### 参考文档
+
+- `script/reference/deploy-windows.md`: Windows 环境部署指南
+- `script/reference/dev_flow.md`: 开发流程指南
+- `script/reference/docker.md`: Docker 使用指南
+- `script/reference/function.md`: 功能介绍
+- `script/reference/linux.md`: Linux 使用指南
+- `script/reference/mysql.md`: MySQL 使用指南
+- `script/reference/shortcut.md`: 快捷键指南
+
+### 设计资源
+
+- `script/axure`: 系统原型设计文件
+- `script/mind`: 思维导图文件，包含各模块的功能规划
+- `script/pdm`: 数据库物理模型设计文件
+- `script/pos`: 系统架构和业务架构图
+
+### API 测试资源
+
+- `script/postman/mall-admin.postman_collection.json`: 后台管理 API 测试集合
+- `script/postman/mall-portal.postman_collection.json`: 前台门户 API 测试集合
+
+### 数据库脚本
+
+项目的数据库初始化脚本位于 `script/sql/mall.sql`，包含了系统所需的所有表结构和初始数据。
+
 ## 常见问题
 
 ### 1. 项目编译问题
@@ -2449,78 +2464,3 @@ docker logs <container_id>
 - 检查环境变量配置
 - 确保容器间网络连接正常
 - 验证映射端口是否被占用
-
-## 依赖注入与设计模式
-
-mall-go 项目引入了现代化的依赖注入工具和设计模式，使代码更具可维护性、可测试性和灵活性。
-
-### 依赖注入 (Wire)
-
-mall-go 项目使用 Google 开源的 Wire 工具实现编译时依赖注入，相比运行时依赖注入框架，Wire 具有以下优势：
-
-1. **编译时依赖注入**：在编译时生成依赖注入代码，无运行时性能开销
-2. **类型安全**：编译时检查类型，避免运行时类型错误
-3. **易于调试**：生成的代码清晰可读，便于调试和理解
-4. **无反射**：不使用反射，性能更好
-
-#### Wire 使用示例
-
-```go
-// wire.go - Wire依赖注入定义
-package main
-
-import (
-    "github.com/google/wire"
-
-    "mall-go/product-service/api/handler"
-    "mall-go/product-service/application/service"
-    "mall-go/product-service/domain/repository"
-    "mall-go/product-service/infrastructure/persistence/mysql"
-)
-
-// 定义产品服务依赖注入
-var productSet = wire.NewSet(
-    mysql.NewProductRepository,
-    wire.Bind(new(repository.ProductRepository), new(*mysql.ProductRepositoryImpl)),
-    service.NewProductService,
-    handler.NewProductHandler,
-)
-
-// 定义应用程序依赖
-func InitializeApp() (*App, error) {
-    wire.Build(
-        NewApp,
-        productSet,
-        // 其他依赖...
-    )
-    return nil, nil
-}
-```
-
-生成依赖注入代码：
-
-```bash
-go run github.com/google/wire/cmd/wire
-```
-
-生成的依赖注入代码：
-
-```go
-// wire_gen.go - 自动生成的依赖注入代码
-package main
-
-import (
-    "mall-go/product-service/api/handler"
-    "mall-go/product-service/application/service"
-    "mall-go/product-service/infrastructure/persistence/mysql"
-)
-
-// 自动生成的代码，请勿编辑
-func InitializeApp() (*App, error) {
-    productRepositoryImpl := mysql.NewProductRepository()
-    productService := service.NewProductService(productRepositoryImpl)
-    productHandler := handler.NewProductHandler(productService)
-    app := NewApp(productHandler)
-    return app, nil
-}
-```
