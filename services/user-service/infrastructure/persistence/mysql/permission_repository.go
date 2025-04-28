@@ -15,13 +15,13 @@ import (
 
 // PermissionEntity 权限实体，用于ORM映射
 type PermissionEntity struct {
-	ID          string    `gorm:"primaryKey;type:varchar(36)"`
-	Name        string    `gorm:"type:varchar(50);not null;uniqueIndex"`
-	Value       string    `gorm:"type:varchar(100);not null;uniqueIndex"`
-	Type        string    `gorm:"type:varchar(20);default:'api'"`
-	Status      string    `gorm:"type:varchar(10);default:'active'"`
-	CreatedAt   time.Time `gorm:"not null"`
-	UpdatedAt   time.Time `gorm:"not null"`
+	ID        string    `gorm:"primaryKey;type:varchar(36)"`
+	Name      string    `gorm:"type:varchar(50);not null;uniqueIndex"`
+	Value     string    `gorm:"type:varchar(100);not null;uniqueIndex"`
+	Type      string    `gorm:"type:varchar(20);default:'api'"`
+	Status    string    `gorm:"type:varchar(10);default:'active'"`
+	CreatedAt time.Time `gorm:"not null"`
+	UpdatedAt time.Time `gorm:"not null"`
 }
 
 // TableName 设置表名
@@ -45,13 +45,13 @@ func NewPermissionRepository() repository.PermissionRepository {
 func (r *PermissionRepositoryImpl) Save(ctx context.Context, permission *model.Permission) error {
 	// 将领域模型转换为持久化实体
 	permEntity := &PermissionEntity{
-		ID:          permission.ID,
-		Name:        permission.Name,
-		Value:       permission.Value,
-		Type:        string(permission.Type),
-		Status:      string(permission.Status),
-		CreatedAt:   permission.CreatedAt,
-		UpdatedAt:   permission.UpdatedAt,
+		ID:        permission.ID,
+		Name:      permission.Name,
+		Value:     permission.Value,
+		Type:      string(permission.Type),
+		Status:    string(permission.Status),
+		CreatedAt: permission.CreatedAt,
+		UpdatedAt: permission.UpdatedAt,
 	}
 
 	return r.db.Create(permEntity).Error
@@ -150,21 +150,12 @@ func (r *PermissionRepositoryImpl) FindAll(ctx context.Context, page, size int) 
 }
 
 // FindByType 根据类型查找权限
-func (r *PermissionRepositoryImpl) FindByType(ctx context.Context, permType model.PermissionType, page, size int) ([]*model.Permission, int64, error) {
+func (r *PermissionRepositoryImpl) FindByType(ctx context.Context, permType model.PermissionType) ([]*model.Permission, error) {
 	var permEntities []PermissionEntity
-	var total int64
 
-	query := r.db.Model(&PermissionEntity{}).Where("type = ?", permType)
-
-	// 查询总数
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
-
-	// 分页查询
-	offset := (page - 1) * size
-	if err := query.Offset(offset).Limit(size).Order("created_at desc").Find(&permEntities).Error; err != nil {
-		return nil, 0, err
+	// 查询权限
+	if err := r.db.Where("type = ?", permType).Order("created_at desc").Find(&permEntities).Error; err != nil {
+		return nil, err
 	}
 
 	// 转换为领域模型
@@ -172,12 +163,12 @@ func (r *PermissionRepositoryImpl) FindByType(ctx context.Context, permType mode
 	for _, entity := range permEntities {
 		perm, err := r.toDomainModel(&entity)
 		if err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 		permissions = append(permissions, perm)
 	}
 
-	return permissions, total, nil
+	return permissions, nil
 }
 
 // FindByRoleID 查询角色的所有权限
@@ -221,6 +212,61 @@ func (r *PermissionRepositoryImpl) FindByRoleID(ctx context.Context, roleID stri
 // UpdateStatus 更新权限状态
 func (r *PermissionRepositoryImpl) UpdateStatus(ctx context.Context, id string, status model.PermissionStatus) error {
 	return r.db.Model(&PermissionEntity{}).Where("id = ?", id).Update("status", status).Error
+}
+
+// FindByUserID 查询用户的所有权限
+func (r *PermissionRepositoryImpl) FindByUserID(ctx context.Context, userID string) ([]*model.Permission, error) {
+	// 查询用户角色关联
+	var userRoles []UserRoleRelation
+	if err := r.db.Where("user_id = ?", userID).Find(&userRoles).Error; err != nil {
+		return nil, err
+	}
+
+	// 如果没有角色，返回空数组
+	if len(userRoles) == 0 {
+		return []*model.Permission{}, nil
+	}
+
+	// 提取角色ID
+	roleIDs := make([]string, 0, len(userRoles))
+	for _, relation := range userRoles {
+		roleIDs = append(roleIDs, relation.RoleID)
+	}
+
+	// 查询角色权限关联
+	var rolePermissions []RolePermissionRelation
+	if err := r.db.Where("role_id IN ?", roleIDs).Find(&rolePermissions).Error; err != nil {
+		return nil, err
+	}
+
+	// 如果没有权限，返回空数组
+	if len(rolePermissions) == 0 {
+		return []*model.Permission{}, nil
+	}
+
+	// 提取权限ID
+	permIDs := make([]string, 0, len(rolePermissions))
+	for _, relation := range rolePermissions {
+		permIDs = append(permIDs, relation.PermissionID)
+	}
+
+	// 查询权限
+	var permEntities []PermissionEntity
+	if err := r.db.Where("id IN ?", permIDs).Find(&permEntities).Error; err != nil {
+		return nil, err
+	}
+
+	// 转换为领域模型
+	permissions := make([]*model.Permission, 0, len(permEntities))
+	for _, entity := range permEntities {
+		perm, err := r.toDomainModel(&entity)
+		if err != nil {
+			return nil, err
+		}
+		permissions = append(permissions, perm)
+	}
+
+	return permissions, nil
 }
 
 // 辅助方法: 将持久化实体转换为领域模型

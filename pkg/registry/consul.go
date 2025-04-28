@@ -83,7 +83,7 @@ func (c *ConsulServiceRegistry) Register(serviceInstance *ServiceInstance) error
 	}
 
 	// 记录日志
-	log.Printf("服务[%s]实例[%s]注册成功, 地址: %s:%d", 
+	log.Printf("服务[%s]实例[%s]注册成功, 地址: %s:%d",
 		serviceInstance.Name, serviceInstance.ID, serviceInstance.Address, serviceInstance.Port)
 	return nil
 }
@@ -128,12 +128,13 @@ func (c *ConsulServiceRegistry) GetServiceInstances(serviceName string) ([]*Serv
 func (c *ConsulServiceRegistry) DiscoverServices(serviceName string, tags ...string) ([]*ServiceInstance, error) {
 	// 使用健康检查API查询健康的服务实例
 	var queryOpts api.QueryOptions
+	var tag string
 	if len(tags) > 0 {
 		// 如果提供了标签，使用标签过滤
-		queryOpts.Tag = tags[0]
+		tag = tags[0]
 	}
 
-	services, _, err := c.client.Health().Service(serviceName, "", true, &queryOpts)
+	services, _, err := c.client.Health().Service(serviceName, tag, true, &queryOpts)
 	if err != nil {
 		return nil, fmt.Errorf("服务发现失败: %w", err)
 	}
@@ -184,10 +185,10 @@ func (s *ServiceRegistrationLifecycle) Start() error {
 	}
 
 	s.running = true
-	
+
 	// 启动一个后台协程定期检查和重新注册服务
 	go s.registrationLoop()
-	
+
 	return nil
 }
 
@@ -196,14 +197,14 @@ func (s *ServiceRegistrationLifecycle) Stop() error {
 	if !s.running {
 		return nil
 	}
-	
+
 	// 发送停止信号
 	close(s.stopCh)
-	
+
 	// 注销服务
 	err := s.registry.Deregister(s.serviceInstance)
 	s.running = false
-	
+
 	return err
 }
 
@@ -211,13 +212,13 @@ func (s *ServiceRegistrationLifecycle) Stop() error {
 func (s *ServiceRegistrationLifecycle) registrationLoop() {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ticker.C:
 			// 重新注册服务
 			if err := s.registry.Register(s.serviceInstance); err != nil {
-				log.Printf("服务[%s]实例[%s]重新注册失败: %v", 
+				log.Printf("服务[%s]实例[%s]重新注册失败: %v",
 					s.serviceInstance.Name, s.serviceInstance.ID, err)
 			}
 		case <-s.stopCh:

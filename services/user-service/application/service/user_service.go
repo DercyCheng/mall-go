@@ -56,19 +56,19 @@ func (s *UserService) Register(ctx context.Context, req dto.RegisterUserRequest)
 
 	// 创建用户领域模型
 	user := &model.User{
-		ID:               uuid.New().String(),
-		Username:         req.Username,
-		Email:            req.Email,
-		Phone:            req.Phone,
-		NickName:         req.NickName,
-		Gender:           req.Gender,
-		City:             req.City,
-		Job:              req.Job,
-		Status:           model.UserStatusActive,
+		ID:                uuid.New().String(),
+		Username:          req.Username,
+		Email:             req.Email,
+		Phone:             req.Phone,
+		NickName:          req.NickName,
+		Gender:            req.Gender,
+		City:              req.City,
+		Job:               req.Job,
+		Status:            model.UserStatusActive,
 		IntegrationPoints: 0,
-		Roles:            []model.Role{},
-		CreatedAt:        time.Now(),
-		UpdatedAt:        time.Now(),
+		Roles:             []model.Role{},
+		CreatedAt:         time.Now(),
+		UpdatedAt:         time.Now(),
 	}
 
 	// 设置密码(加密)
@@ -251,7 +251,7 @@ func (s *UserService) UpdateStatus(ctx context.Context, id string, req dto.Updat
 // AssignRoles 分配角色
 func (s *UserService) AssignRoles(ctx context.Context, userID string, req dto.AssignRoleRequest) error {
 	// 获取用户信息
-	user, err := s.userRepo.FindByID(ctx, userID)
+	_, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -262,19 +262,19 @@ func (s *UserService) AssignRoles(ctx context.Context, userID string, req dto.As
 	if err != nil {
 		return err
 	}
-	
+
 	// 构建当前角色ID集合
 	currentRoleIDs := make(map[string]bool)
 	for _, role := range currentRoles {
 		currentRoleIDs[role.ID] = true
 	}
-	
+
 	// 构建新角色ID集合
 	newRoleIDs := make(map[string]bool)
 	for _, roleID := range req.RoleIDs {
 		newRoleIDs[roleID] = true
 	}
-	
+
 	// 需要添加的角色
 	for _, roleID := range req.RoleIDs {
 		if !currentRoleIDs[roleID] {
@@ -283,14 +283,14 @@ func (s *UserService) AssignRoles(ctx context.Context, userID string, req dto.As
 			if err != nil {
 				return fmt.Errorf("invalid role ID: %s", roleID)
 			}
-			
+
 			// 添加角色
 			if err := s.userRepo.AddUserRole(ctx, userID, role.ID); err != nil {
 				return err
 			}
 		}
 	}
-	
+
 	// 需要删除的角色
 	for _, role := range currentRoles {
 		if !newRoleIDs[role.ID] {
@@ -299,7 +299,7 @@ func (s *UserService) AssignRoles(ctx context.Context, userID string, req dto.As
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -361,18 +361,18 @@ func (s *UserService) DeleteUser(ctx context.Context, id string) error {
 // 辅助方法: 将领域模型转换为响应DTO
 func (s *UserService) toUserResponse(user *model.User) *dto.UserResponse {
 	resp := &dto.UserResponse{
-		ID:               user.ID,
-		Username:         user.Username,
-		Email:            user.Email,
-		Phone:            user.Phone,
-		NickName:         user.NickName,
-		Icon:             user.Icon,
-		Gender:           user.Gender,
-		City:             user.City,
-		Job:              user.Job,
-		Status:           string(user.Status),
+		ID:                user.ID,
+		Username:          user.Username,
+		Email:             user.Email,
+		Phone:             user.Phone,
+		NickName:          user.NickName,
+		Icon:              user.Icon,
+		Gender:            user.Gender,
+		City:              user.City,
+		Job:               user.Job,
+		Status:            string(user.Status),
 		IntegrationPoints: user.IntegrationPoints,
-		CreatedAt:        user.CreatedAt,
+		CreatedAt:         user.CreatedAt,
 	}
 
 	// 处理可选的生日

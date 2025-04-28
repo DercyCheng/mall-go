@@ -63,6 +63,8 @@ services:
     build:
       context: ../../
       dockerfile: deployments/docker/user-service/Dockerfile
+      args:
+        - GOPROXY=https://goproxy.cn,direct
     container_name: mall-user-service
     restart: always
     depends_on:
@@ -88,6 +90,8 @@ services:
     build:
       context: ../../
       dockerfile: deployments/docker/product-service/Dockerfile
+      args:
+        - GOPROXY=https://goproxy.cn,direct
     container_name: mall-product-service
     restart: always
     depends_on:
@@ -113,6 +117,8 @@ services:
     build:
       context: ../../
       dockerfile: deployments/docker/gateway-service/Dockerfile
+      args:
+        - GOPROXY=https://goproxy.cn,direct
     container_name: mall-gateway-service
     restart: always
     depends_on:

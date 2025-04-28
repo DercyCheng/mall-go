@@ -31,20 +31,20 @@ func NewPermissionHandler(permissionService *service.PermissionService) *Permiss
 // @Accept json
 // @Produce json
 // @Param request body dto.CreatePermissionRequest true "创建权限请求"
-// @Success 200 {object} response.Response{data=dto.PermissionResponse} "成功"
+// @Success 200 {object} response.Response{data=dto.PermissionDetailResponse} "成功"
 // @Failure 400 {object} response.Response "请求错误"
 // @Failure 500 {object} response.Response "服务器内部错误"
 // @Router /api/v1/permissions [post]
 func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 	var req dto.CreatePermissionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid request: "+err.Error())
+		response.BadRequest(c, "Invalid request: "+err.Error())
 		return
 	}
 
 	// 验证请求
 	if err := req.Validate(); err != nil {
-		response.Fail(c, http.StatusBadRequest, err.Error())
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -53,14 +53,14 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 	if err != nil {
 		switch err {
 		case service.ErrPermissionValueAlreadyExists:
-			response.Fail(c, http.StatusBadRequest, "Permission value already exists")
+			response.BadRequest(c, "Permission value already exists")
 		default:
-			response.Fail(c, http.StatusInternalServerError, "Failed to create permission: "+err.Error())
+			response.Error(c, http.StatusInternalServerError, "Failed to create permission: "+err.Error())
 		}
 		return
 	}
 
-	response.Success(c, "Permission created successfully", perm)
+	response.Success(c, perm)
 }
 
 // GetPermission 获取权限
@@ -70,7 +70,7 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "权限ID"
-// @Success 200 {object} response.Response{data=dto.PermissionResponse} "成功"
+// @Success 200 {object} response.Response{data=dto.PermissionDetailResponse} "成功"
 // @Failure 400 {object} response.Response "请求错误"
 // @Failure 404 {object} response.Response "权限不存在"
 // @Failure 500 {object} response.Response "服务器内部错误"
@@ -78,18 +78,18 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 func (h *PermissionHandler) GetPermission(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		response.Fail(c, http.StatusBadRequest, "Missing permission ID")
+		response.BadRequest(c, "Missing permission ID")
 		return
 	}
 
 	// 获取权限
 	perm, err := h.permissionService.GetPermission(c.Request.Context(), id)
 	if err != nil {
-		response.Fail(c, http.StatusNotFound, "Permission not found: "+err.Error())
+		response.NotFound(c)
 		return
 	}
 
-	response.Success(c, "Permission retrieved successfully", perm)
+	response.Success(c, perm)
 }
 
 // UpdatePermission 更新权限
@@ -100,7 +100,7 @@ func (h *PermissionHandler) GetPermission(c *gin.Context) {
 // @Produce json
 // @Param id path string true "权限ID"
 // @Param request body dto.UpdatePermissionRequest true "更新权限请求"
-// @Success 200 {object} response.Response{data=dto.PermissionResponse} "成功"
+// @Success 200 {object} response.Response{data=dto.PermissionDetailResponse} "成功"
 // @Failure 400 {object} response.Response "请求错误"
 // @Failure 404 {object} response.Response "权限不存在"
 // @Failure 500 {object} response.Response "服务器内部错误"
@@ -108,19 +108,19 @@ func (h *PermissionHandler) GetPermission(c *gin.Context) {
 func (h *PermissionHandler) UpdatePermission(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		response.Fail(c, http.StatusBadRequest, "Missing permission ID")
+		response.BadRequest(c, "Missing permission ID")
 		return
 	}
 
 	var req dto.UpdatePermissionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid request: "+err.Error())
+		response.BadRequest(c, "Invalid request: "+err.Error())
 		return
 	}
 
 	// 验证请求
 	if err := req.Validate(); err != nil {
-		response.Fail(c, http.StatusBadRequest, err.Error())
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -129,14 +129,14 @@ func (h *PermissionHandler) UpdatePermission(c *gin.Context) {
 	if err != nil {
 		switch err {
 		case service.ErrPermissionValueAlreadyExists:
-			response.Fail(c, http.StatusBadRequest, "Permission value already exists")
+			response.BadRequest(c, "Permission value already exists")
 		default:
-			response.Fail(c, http.StatusInternalServerError, "Failed to update permission: "+err.Error())
+			response.Error(c, http.StatusInternalServerError, "Failed to update permission: "+err.Error())
 		}
 		return
 	}
 
-	response.Success(c, "Permission updated successfully", perm)
+	response.Success(c, perm)
 }
 
 // DeletePermission 删除权限
@@ -154,17 +154,17 @@ func (h *PermissionHandler) UpdatePermission(c *gin.Context) {
 func (h *PermissionHandler) DeletePermission(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		response.Fail(c, http.StatusBadRequest, "Missing permission ID")
+		response.BadRequest(c, "Missing permission ID")
 		return
 	}
 
 	// 删除权限
 	if err := h.permissionService.DeletePermission(c.Request.Context(), id); err != nil {
-		response.Fail(c, http.StatusInternalServerError, "Failed to delete permission: "+err.Error())
+		response.Error(c, http.StatusInternalServerError, "Failed to delete permission: "+err.Error())
 		return
 	}
 
-	response.Success(c, "Permission deleted successfully", nil)
+	response.Success(c, nil)
 }
 
 // ListPermissions 获取权限列表
@@ -176,7 +176,7 @@ func (h *PermissionHandler) DeletePermission(c *gin.Context) {
 // @Param page query int false "页码，默认1"
 // @Param size query int false "每页数量，默认10"
 // @Param type query string false "权限类型，可选值：api, menu, button"
-// @Success 200 {object} response.Response{data=dto.PermissionListResponse} "成功"
+// @Success 200 {object} response.Response{data=dto.PermissionPageResponse} "成功"
 // @Failure 400 {object} response.Response "请求错误"
 // @Failure 500 {object} response.Response "服务器内部错误"
 // @Router /api/v1/permissions [get]
@@ -195,7 +195,7 @@ func (h *PermissionHandler) ListPermissions(c *gin.Context) {
 		size = 10
 	}
 
-	var permList *dto.PermissionListResponse
+	var permList *dto.PermissionPageResponse
 	// 根据类型查询权限列表
 	if permType != "" {
 		permList, err = h.permissionService.ListPermissionsByType(c.Request.Context(), permType, page, size)
@@ -204,11 +204,11 @@ func (h *PermissionHandler) ListPermissions(c *gin.Context) {
 	}
 
 	if err != nil {
-		response.Fail(c, http.StatusInternalServerError, "Failed to get permissions: "+err.Error())
+		response.Error(c, http.StatusInternalServerError, "Failed to get permissions: "+err.Error())
 		return
 	}
 
-	response.Success(c, "Permissions retrieved successfully", permList)
+	response.Success(c, permList)
 }
 
 // UpdatePermissionStatus 更新权限状态
@@ -218,7 +218,7 @@ func (h *PermissionHandler) ListPermissions(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "权限ID"
-// @Param request body dto.UpdateStatusRequest true "更新状态请求"
+// @Param request body dto.UpdatePermissionStatusRequest true "更新状态请求"
 // @Success 200 {object} response.Response "成功"
 // @Failure 400 {object} response.Response "请求错误"
 // @Failure 404 {object} response.Response "权限不存在"
@@ -227,34 +227,37 @@ func (h *PermissionHandler) ListPermissions(c *gin.Context) {
 func (h *PermissionHandler) UpdatePermissionStatus(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		response.Fail(c, http.StatusBadRequest, "Missing permission ID")
+		response.BadRequest(c, "Missing permission ID")
 		return
 	}
 
-	var req dto.UpdateStatusRequest
+	var req dto.UpdatePermissionStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid request: "+err.Error())
+		response.BadRequest(c, "Invalid request: "+err.Error())
 		return
 	}
 
 	// 验证请求
 	if err := req.Validate(); err != nil {
-		response.Fail(c, http.StatusBadRequest, err.Error())
+		response.BadRequest(c, err.Error())
 		return
 	}
 
+	// 使用字符串状态值
+	statusValue := req.Status
+
 	// 更新权限状态
-	if err := h.permissionService.UpdatePermissionStatus(c.Request.Context(), id, req.Status); err != nil {
+	if err := h.permissionService.UpdatePermissionStatus(c.Request.Context(), id, statusValue); err != nil {
 		switch err {
 		case service.ErrInvalidPermissionStatus:
-			response.Fail(c, http.StatusBadRequest, "Invalid permission status")
+			response.BadRequest(c, "Invalid permission status")
 		default:
-			response.Fail(c, http.StatusInternalServerError, "Failed to update permission status: "+err.Error())
+			response.Error(c, http.StatusInternalServerError, "Failed to update permission status: "+err.Error())
 		}
 		return
 	}
 
-	response.Success(c, "Permission status updated successfully", nil)
+	response.Success(c, nil)
 }
 
 // AssignPermissionsToRole 分配权限到角色
@@ -264,7 +267,7 @@ func (h *PermissionHandler) UpdatePermissionStatus(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "角色ID"
-// @Param request body dto.AssignPermissionsToRoleRequest true "权限分配请求"
+// @Param request body dto.PermissionAssignmentRequest true "权限分配请求"
 // @Success 200 {object} response.Response "成功"
 // @Failure 400 {object} response.Response "请求错误"
 // @Failure 404 {object} response.Response "角色不存在"
@@ -274,20 +277,20 @@ func (h *PermissionHandler) AssignPermissionsToRole(c *gin.Context) {
 	// 获取角色ID
 	roleID := c.Param("id")
 	if roleID == "" {
-		response.Fail(c, http.StatusBadRequest, "Missing role ID")
+		response.BadRequest(c, "Missing role ID")
 		return
 	}
 
 	// 解析请求
-	var req dto.AssignPermissionsToRoleRequest
+	var req dto.PermissionAssignmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid request: "+err.Error())
+		response.BadRequest(c, "Invalid request: "+err.Error())
 		return
 	}
 
 	// 验证请求
 	if err := req.Validate(); err != nil {
-		response.Fail(c, http.StatusBadRequest, err.Error())
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -296,16 +299,16 @@ func (h *PermissionHandler) AssignPermissionsToRole(c *gin.Context) {
 	err := roleService.AssignPermissions(c.Request.Context(), roleID, req.PermissionIDs)
 	if err != nil {
 		if err.Error() == "record not found" {
-			response.Fail(c, http.StatusNotFound, "Role not found")
+			response.NotFound(c)
 			return
 		}
 		if strings.HasPrefix(err.Error(), "invalid permission ID:") {
-			response.Fail(c, http.StatusBadRequest, err.Error())
+			response.BadRequest(c, err.Error())
 			return
 		}
-		response.Fail(c, http.StatusInternalServerError, "Failed to assign permissions: "+err.Error())
+		response.Error(c, http.StatusInternalServerError, "Failed to assign permissions: "+err.Error())
 		return
 	}
 
-	response.Success(c, "Permissions assigned successfully", nil)
+	response.Success(c, nil)
 }

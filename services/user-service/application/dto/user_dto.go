@@ -3,23 +3,21 @@ package dto
 import (
 	"errors"
 	"time"
-
-	"mall-go/services/user-service/domain/model"
 )
 
 // 请求DTO
 
 // RegisterUserRequest 用户注册请求
 type RegisterUserRequest struct {
-	Username  string `json:"username" binding:"required,min=3,max=20"`
-	Password  string `json:"password" binding:"required,min=6"`
-	Email     string `json:"email" binding:"required,email"`
-	Phone     string `json:"phone" binding:"required"`
-	NickName  string `json:"nickName"`
-	Gender    int    `json:"gender" binding:"oneof=0 1 2"` // 0-未知 1-男 2-女
-	Birthday  string `json:"birthday" binding:"omitempty,datetime=2006-01-02"`
-	City      string `json:"city"`
-	Job       string `json:"job"`
+	Username string `json:"username" binding:"required,min=3,max=20"`
+	Password string `json:"password" binding:"required,min=6"`
+	Email    string `json:"email" binding:"required,email"`
+	Phone    string `json:"phone" binding:"required"`
+	NickName string `json:"nickName"`
+	Gender   int    `json:"gender" binding:"oneof=0 1 2"` // 0-未知 1-男 2-女
+	Birthday string `json:"birthday" binding:"omitempty,datetime=2006-01-02"`
+	City     string `json:"city"`
+	Job      string `json:"job"`
 }
 
 // LoginRequest 用户登录请求
@@ -67,21 +65,21 @@ type SearchUserRequest struct {
 
 // UserResponse 用户信息响应
 type UserResponse struct {
-	ID               string    `json:"id"`
-	Username         string    `json:"username"`
-	Email            string    `json:"email"`
-	Phone            string    `json:"phone"`
-	NickName         string    `json:"nickName"`
-	Icon             string    `json:"icon"`
-	Gender           int       `json:"gender"`
-	Birthday         *string   `json:"birthday,omitempty"`
-	City             string    `json:"city"`
-	Job              string    `json:"job"`
-	Status           string    `json:"status"`
-	IntegrationPoints int      `json:"integrationPoints"`
-	Roles            []RoleDTO `json:"roles,omitempty"`
-	CreatedAt        time.Time `json:"createdAt"`
-	LastLoginAt      *string   `json:"lastLoginAt,omitempty"`
+	ID                string    `json:"id"`
+	Username          string    `json:"username"`
+	Email             string    `json:"email"`
+	Phone             string    `json:"phone"`
+	NickName          string    `json:"nickName"`
+	Icon              string    `json:"icon"`
+	Gender            int       `json:"gender"`
+	Birthday          *string   `json:"birthday,omitempty"`
+	City              string    `json:"city"`
+	Job               string    `json:"job"`
+	Status            string    `json:"status"`
+	IntegrationPoints int       `json:"integrationPoints"`
+	Roles             []RoleDTO `json:"roles,omitempty"`
+	CreatedAt         time.Time `json:"createdAt"`
+	LastLoginAt       *string   `json:"lastLoginAt,omitempty"`
 }
 
 // RoleDTO 角色信息

@@ -42,14 +42,13 @@ func main() {
 	}
 
 	// 3. 初始化数据库连接
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	if err := database.InitMySQL(
 		cfg.Database.Username,
 		cfg.Database.Password,
 		cfg.Database.Host,
-		cfg.Database.Port,
+		fmt.Sprintf("%d", cfg.Database.Port),
 		cfg.Database.Database,
-	)
-	if err := database.InitDB(dsn); err != nil {
+	); err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
@@ -64,7 +63,7 @@ func main() {
 	permissionRepo := mysql.NewPermissionRepository()
 
 	// 6. 初始化应用服务
-	userService := service.NewUserService(userRepo, roleRepo)
+	userService := service.NewUserService(userRepo, roleRepo, permissionRepo)
 	roleService := service.NewRoleService(roleRepo, permissionRepo)
 	permissionService := service.NewPermissionService(permissionRepo, roleRepo)
 
@@ -107,7 +106,7 @@ func main() {
 
 			// 创建服务注册生命周期管理
 			serviceRegistrationLifecycle = registry.NewServiceRegistrationLifecycle(consulRegistry, serviceInstance)
-			
+
 			// 启动服务注册
 			if err := serviceRegistrationLifecycle.Start(); err != nil {
 				log.Printf("服务注册失败: %v", err)

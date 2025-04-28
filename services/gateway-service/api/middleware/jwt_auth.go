@@ -18,7 +18,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		// 从请求头中获取token
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			response.Fail(c, http.StatusUnauthorized, "未提供token")
+			response.Unauthorized(c)
 			c.Abort()
 			return
 		}
@@ -26,7 +26,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		// 检查Authorization格式
 		parts := strings.SplitN(authHeader, " ", 2)
 		if !(len(parts) == 2 && parts[0] == "Bearer") {
-			response.Fail(c, http.StatusUnauthorized, "token格式错误")
+			response.Error(c, http.StatusUnauthorized, "token格式错误")
 			c.Abort()
 			return
 		}
@@ -35,7 +35,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		token := parts[1]
 		claims, err := parseToken(token)
 		if err != nil {
-			response.Fail(c, http.StatusUnauthorized, "无效的token: "+err.Error())
+			response.Error(c, http.StatusUnauthorized, "无效的token: "+err.Error())
 			c.Abort()
 			return
 		}
@@ -43,7 +43,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		// 将用户信息存储到上下文中
 		c.Set("userID", claims.UserID)
 		c.Set("username", claims.Username)
-		
+
 		// 将Token信息传递给后端服务(透传)
 		c.Request.Header.Set("X-User-ID", claims.UserID)
 		c.Request.Header.Set("X-Username", claims.Username)

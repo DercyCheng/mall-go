@@ -76,24 +76,25 @@ func NewRedisRateLimiter(client *redis.Client, config config.RateLimitConfig) *R
 func (l *RedisRateLimiter) Allow(key string) bool {
 	// 检查是否存在指定路径的限流配置
 	limit := l.config.Limit
-	burst := l.config.Burst
+	// 获取burst值但暂时不使用，为兼容未来改进保留此逻辑
+	_ = l.config.Burst
 
 	// 检查端点特定配置
 	for _, endpoint := range l.config.Endpoints {
 		if key == endpoint.Path {
 			limit = endpoint.Limit
-			burst = endpoint.Burst
+			_ = endpoint.Burst // 同样标记为使用但不实际使用
 			break
 		}
 	}
 
 	// 构建Redis键
 	redisKey := fmt.Sprintf("ratelimit:%s", key)
-	
+
 	// 使用Redis的计数器来实现限流
 	// 这里使用简单的计数器实现，生产环境可以使用令牌桶或滑动窗口算法
 	ctx := l.client.Context()
-	
+
 	// 获取当前计数
 	val, err := l.client.Get(ctx, redisKey).Result()
 	if err != nil && err != redis.Nil {
@@ -113,7 +114,7 @@ func (l *RedisRateLimiter) Allow(key string) bool {
 
 	// 增加计数
 	l.client.Incr(ctx, redisKey)
-	
+
 	// 如果是新的计数周期，设置过期时间（1分钟）
 	if count == 0 {
 		l.client.Expire(ctx, redisKey, time.Minute)
@@ -154,7 +155,7 @@ func RateLimitMiddleware() gin.HandlerFunc {
 
 		// 判断是否允许请求通过
 		if !globalRateLimiter.Allow(key) {
-			response.Fail(c, http.StatusTooManyRequests, "请求频率过高，请稍后再试")
+			response.Error(c, http.StatusTooManyRequests, "请求频率过高，请稍后再试")
 			c.Abort()
 			return
 		}

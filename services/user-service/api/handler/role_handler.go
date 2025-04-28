@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"mall-go/pkg/response"
-	"mall-go/services/user-service/application/dto"
 	"mall-go/services/user-service/application/service"
 	"mall-go/services/user-service/domain/model"
 )

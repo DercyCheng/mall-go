@@ -1,6 +1,8 @@
 module mall-go
 
-go 1.23.1
+go 1.23.0
+
+toolchain go1.23.8
 
 require (
 	github.com/gin-gonic/gin v1.10.0
