@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mall-go
+  labels:
+    name: mall-go
+    app: mall-go

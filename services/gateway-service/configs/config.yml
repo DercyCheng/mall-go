@@ -1,0 +1,70 @@
+server:
+  port: 8000
+  readTimeout: 10
+  writeTimeout: 10
+  mode: debug
+
+consul:
+  address: localhost:8500
+  serviceName: gateway-service
+  tags:
+    - go
+    - gateway
+    - api
+  meta:
+    version: v1.0
+    environment: dev
+
+jwt:
+  secret: mall-go-gateway-secret-key
+  expiration: 1440  # 过期时间，单位分钟
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 0
+
+services:
+  user-service:
+    path: "/api/users"
+    stripPrefix: true
+    retries: 3
+    timeout: 5  # 超时时间，单位秒
+  
+  product-service:
+    path: "/api/products"
+    stripPrefix: true
+    retries: 3
+    timeout: 5
+
+rateLimit:
+  enabled: true
+  type: redis     # 支持 memory 或 redis
+  limit: 100      # 默认限流阈值(次/分钟)
+  burst: 20       # 突发流量阈值
+  endpoints:
+    - path: "/api/users"
+      limit: 60
+      burst: 10
+    - path: "/api/products"
+      limit: 200
+      burst: 50
+
+cors:
+  enabled: true
+  allowOrigins:
+    - "*"
+  allowMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowHeaders:
+    - Origin
+    - Content-Type
+    - Accept
+    - Authorization
+  allowCredentials: true
+  maxAge: 86400  # 预检请求有效期，单位秒
