@@ -207,42 +207,34 @@ if err := updateProduct(id, product); err != nil {
 
 ### Go 语言核心技术栈
 
-| 技术             | 说明                 | 官网/仓库                                   |
-| ---------------- | -------------------- | ------------------------------------------- |
-| Go               | 编程语言             | https://golang.org/                         |
-| Gin              | Web 框架             | https://github.com/gin-gonic/gin            |
-| GORM             | ORM 框架             | https://gorm.io/                            |
-| JWT-Go           | JWT 认证             | https://github.com/golang-jwt/jwt           |
-| Go-Redis         | Redis 客户端         | https://github.com/go-redis/redis           |
-| Elasticsearch-Go | Elasticsearch 客户端 | https://github.com/elastic/go-elasticsearch |
-| Go-MongoDB       | MongoDB 驱动         | https://github.com/mongodb/mongo-go-driver  |
-| Amqp             | RabbitMQ 客户端      | https://github.com/rabbitmq/amqp091-go      |
-| Zap              | 日志库               | https://github.com/uber-go/zap              |
-| Viper            | 配置管理             | https://github.com/spf13/viper              |
-| Swaggo           | API 文档生成         | https://github.com/swaggo/swag              |
-| Air              | 热重载工具           | https://github.com/cosmtrek/air             |
-| Gomock           | 测试框架             | https://github.com/golang/mock              |
-| Prometheus       | 监控工具             | https://github.com/prometheus/client_golang |
-| Casbin           | 权限管理             | https://github.com/casbin/casbin            |
-| Wire             | 依赖注入工具         | https://github.com/google/wire              |
+| 技术             | 说明                 | 选择理由                                   | 官网/仓库                                   |
+| ---------------- | -------------------- | ------------------------------------------ | ------------------------------------------- |
+| Go               | 编程语言             | 高性能、低资源占用、并发友好               | https://golang.org/                         |
+| Gin              | Web 框架             | 轻量、高性能、生态丰富                     | https://github.com/gin-gonic/gin            |
+| GORM             | ORM 框架             | 功能全面、易用、社区活跃                   | https://gorm.io/                            |
+| JWT-Go           | JWT 认证             | Go语言标准JWT实现，安全可靠                | https://github.com/golang-jwt/jwt           |
+| Go-Redis         | Redis 客户端         | 官方推荐，性能优异                         | https://github.com/go-redis/redis           |
+| Elasticsearch-Go | Elasticsearch 客户端 | 官方客户端，完整支持ES特性                 | https://github.com/elastic/go-elasticsearch |
+| Amqp091-go       | RabbitMQ 客户端      | RabbitMQ官方推荐，稳定可靠                 | https://github.com/rabbitmq/amqp091-go      |
+| Zap              | 日志库               | 高性能结构化日志，支持多级别和多输出       | https://github.com/uber-go/zap              |
+| Viper            | 配置管理             | 支持多种配置源，动态加载                   | https://github.com/spf13/viper              |
+| Swaggo           | API 文档生成         | 与Go代码集成度高，支持自动生成Swagger文档  | https://github.com/swaggo/swag              |
+| Testify          | 测试框架             | 提供丰富的断言和mock功能                   | https://github.com/stretchr/testify         |
+| Prometheus Client| 监控指标收集         | 行业标准监控解决方案                       | https://github.com/prometheus/client_golang |
+| Casbin           | 权限管理             | 灵活的权限模型，支持各种访问控制策略       | https://github.com/casbin/casbin            |
+| Wire             | 依赖注入工具         | Google开发，编译时依赖注入，避免运行时开销 | https://github.com/google/wire              |
 
-### 微服务技术栈新增
+### 微服务技术栈
 
-| 技术             | 说明               | 官网/仓库                                          |
-| ---------------- | ------------------ | -------------------------------------------------- |
-| gRPC             | 微服务通信框架     | https://github.com/grpc/grpc-go                    |
-| Protocol Buffers | 数据序列化格式     | https://github.com/protocolbuffers/protobuf        |
-| Consul           | 服务注册与发现     | https://github.com/hashicorp/consul                |
-| Nacos            | 配置中心和注册中心 | https://github.com/nacos-group/nacos-sdk-go        |
-| Etcd             | 分布式键值存储     | https://github.com/etcd-io/etcd                    |
-| go-kit           | 微服务工具包       | https://github.com/go-kit/kit                      |
-| NATS             | 消息系统           | https://github.com/nats-io/nats.go                 |
-| Sentinel-Go      | 流量控制与熔断     | https://github.com/alibaba/sentinel-golang         |
-| OpenTelemetry    | 分布式追踪         | https://github.com/open-telemetry/opentelemetry-go |
-| Jaeger           | 分布式追踪系统     | https://github.com/jaegertracing/jaeger-client-go  |
-| Kubernetes       | 容器编排平台       | https://kubernetes.io/                             |
-| Helm             | K8s 应用包管理器   | https://helm.sh/                                   |
-| Istio            | 服务网格           | https://istio.io/                                  |
+| 技术             | 说明               | 选择理由                                     | 官网/仓库                                    |
+| ---------------- | ------------------ | -------------------------------------------- | -------------------------------------------- |
+| gRPC             | 微服务通信框架     | 高性能、跨语言、使用Protocol Buffers         | https://github.com/grpc/grpc-go              |
+| Protocol Buffers | 数据序列化格式     | 与gRPC完美结合，高效二进制序列化             | https://github.com/protocolbuffers/protobuf  |
+| Consul           | 服务注册与发现     | 轻量级、高可用、服务健康检查                 | https://github.com/hashicorp/consul          |
+| Etcd             | 配置中心           | 高可靠分布式键值存储，支持动态配置管理       | https://github.com/etcd-io/etcd              |
+| OpenTelemetry    | 分布式追踪         | 开放标准，集成监控、日志和追踪               | https://github.com/open-telemetry/opentelemetry-go |
+| Jaeger           | 分布式追踪系统     | 与OpenTelemetry配合，可视化分布式追踪数据    | https://github.com/jaegertracing/jaeger-client-go |
+| Sentinel-Go      | 流量控制与熔断     | 轻量级流量控制、熔断和系统保护库             | https://github.com/alibaba/sentinel-golang   |
 
 ### 数据库和中间件 (与原项目相同)
 
@@ -255,6 +247,7 @@ if err := updateProduct(id, product); err != nil {
 | RabbitMQ      | 消息队列       | https://www.rabbitmq.com/             |
 | Nginx         | 静态资源服务器 | https://www.nginx.com/                |
 | Docker        | 容器化部署     | https://www.docker.com/               |
+| Kubernetes    | 容器编排平台   | https://kubernetes.io/                |
 
 ## 微服务架构设计
 
@@ -616,81 +609,77 @@ mall-go 项目引入配置中心和注册中心，实现配置的集中管理、
 
 ### 配置中心
 
-mall-go 项目采用 Nacos 作为配置中心，实现以下功能：
+mall-go 项目采用 Etcd 作为配置中心，实现以下功能：
 
 1. **配置集中管理**: 所有服务的配置统一存储在配置中心，避免配置分散
 2. **配置动态更新**: 支持配置热更新，无需重启服务
 3. **环境隔离**: 支持开发、测试、生产等多环境配置管理
 4. **配置版本控制**: 记录配置变更历史，支持版本回滚
 
-> **注意**: 所有的配置文件都存放在 `document/`目录下，方便集中管理和维护。
+> **注意**: 所有的配置文件都存放在 `configs/` 目录下，方便集中管理和维护。
 
-#### Nacos 配置中心实现：
+#### Etcd 配置中心实现：
 
 ```go
-// pkg/config/nacos.go - Nacos配置中心客户端
+// pkg/config/etcd.go - Etcd配置中心客户端
 package config
 
 import (
+    "context"
     "encoding/json"
+    "fmt"
     "log"
+    "time"
 
-    "github.com/nacos-group/nacos-sdk-go/clients"
-    "github.com/nacos-group/nacos-sdk-go/clients/config_client"
-    "github.com/nacos-group/nacos-sdk-go/common/constant"
-    "github.com/nacos-group/nacos-sdk-go/vo"
-    "github.com/spf13/viper"
+    clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-var configClient config_client.IConfigClient
+// EtcdClient Etcd客户端
+type EtcdClient struct {
+    client *clientv3.Client
+    prefix string
+}
 
-// InitNacosConfig 初始化Nacos配置中心
-func InitNacosConfig(serverAddr, serverPort, namespace string) error {
-    // 创建clientConfig
-    clientConfig := constant.ClientConfig{
-        NamespaceId:         namespace,
-        TimeoutMs:           5000,
-        NotLoadCacheAtStart: true,
-        LogDir:              "logs/nacos/log",
-        CacheDir:            "logs/nacos/cache",
-        LogLevel:            "info",
-    }
-
-    // 创建serverConfig
-    serverConfigs := []constant.ServerConfig{
-        {
-            IpAddr: serverAddr,
-            Port:   uint64(serverPort),
-        },
-    }
-
-    // 创建配置中心客户端
-    client, err := clients.CreateConfigClient(map[string]interface{}{
-        "serverConfigs": serverConfigs,
-        "clientConfig":  clientConfig,
+// NewEtcdClient 创建Etcd客户端
+func NewEtcdClient(endpoints []string, prefix string) (*EtcdClient, error) {
+    cli, err := clientv3.New(clientv3.Config{
+        Endpoints:   endpoints,
+        DialTimeout: 5 * time.Second,
     })
-    if (err != nil) {
-        log.Printf("初始化Nacos配置中心客户端失败: %v", err)
-        return err
+    if err != nil {
+        log.Printf("初始化Etcd客户端失败: %v", err)
+        return nil, err
     }
 
-    configClient = client
-    return nil
+    return &EtcdClient{
+        client: cli,
+        prefix: prefix,
+    }, nil
+}
+
+// Close 关闭Etcd客户端
+func (c *EtcdClient) Close() error {
+    return c.client.Close()
 }
 
 // LoadConfig 从配置中心加载配置
-func LoadConfig(dataID, group string, configStruct interface{}) error {
-    content, err := configClient.GetConfig(vo.ConfigParam{
-        DataId: dataID,
-        Group:  group,
-    })
+func (c *EtcdClient) LoadConfig(key string, configStruct interface{}) error {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
 
+    fullKey := fmt.Sprintf("%s/%s", c.prefix, key)
+    resp, err := c.client.Get(ctx, fullKey)
     if err != nil {
-        log.Printf("从Nacos获取配置失败: %v", err)
+        log.Printf("从Etcd获取配置失败: %v", err)
         return err
     }
 
-    err = json.Unmarshal([]byte(content), configStruct)
+    if len(resp.Kvs) == 0 {
+        return fmt.Errorf("配置不存在: %s", fullKey)
+    }
+
+    value := resp.Kvs[0].Value
+    err = json.Unmarshal(value, configStruct)
     if err != nil {
         log.Printf("解析配置失败: %v", err)
         return err
@@ -699,23 +688,43 @@ func LoadConfig(dataID, group string, configStruct interface{}) error {
     return nil
 }
 
-// ListenConfig 监听配置变更
-func ListenConfig(dataID, group string, onChange func(string)) error {
-    err := configClient.ListenConfig(vo.ConfigParam{
-        DataId: dataID,
-        Group:  group,
-        OnChange: func(namespace, group, dataId, data string) {
-            log.Printf("配置发生变更: %s, %s, %s", namespace, group, dataId)
-            onChange(data)
-        },
-    })
+// SaveConfig 保存配置到配置中心
+func (c *EtcdClient) SaveConfig(key string, configStruct interface{}) error {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
 
+    value, err := json.Marshal(configStruct)
     if err != nil {
-        log.Printf("监听配置失败: %v", err)
+        log.Printf("序列化配置失败: %v", err)
+        return err
+    }
+
+    fullKey := fmt.Sprintf("%s/%s", c.prefix, key)
+    _, err = c.client.Put(ctx, fullKey, string(value))
+    if err != nil {
+        log.Printf("保存配置到Etcd失败: %v", err)
         return err
     }
 
     return nil
+}
+
+// WatchConfig 监听配置变更
+func (c *EtcdClient) WatchConfig(key string, onChange func([]byte)) {
+    fullKey := fmt.Sprintf("%s/%s", c.prefix, key)
+    watchChan := c.client.Watch(context.Background(), fullKey)
+
+    // 在新的goroutine中处理监听事件
+    go func() {
+        for watchResp := range watchChan {
+            for _, event := range watchResp.Events {
+                if event.Type == clientv3.EventTypePut {
+                    log.Printf("配置发生变更: %s", fullKey)
+                    onChange(event.Kv.Value)
+                }
+            }
+        }
+    }()
 }
 ```
 
@@ -734,28 +743,56 @@ type DatabaseConfig struct {
 var dbConfig DatabaseConfig
 
 func init() {
-    // 初始化配置中心
-    if err := config.InitNacosConfig("nacos-server", 8848, "mall-go"); err != nil {
-        log.Fatalf("初始化配置中心失败: %v", err)
+    // 初始化Etcd客户端
+    etcdClient, err := config.NewEtcdClient([]string{"etcd:2379"}, "mall-go")
+    if err != nil {
+        log.Fatalf("初始化Etcd客户端失败: %v", err)
     }
+    defer etcdClient.Close()
 
     // 加载数据库配置
-    if err := config.LoadConfig("database-config", "DEFAULT_GROUP", &dbConfig); err != nil {
+    if err := etcdClient.LoadConfig("database-config", &dbConfig); err != nil {
         log.Fatalf("加载数据库配置失败: %v", err)
     }
 
     // 监听配置变更
-    config.ListenConfig("database-config", "DEFAULT_GROUP", func(data string) {
+    etcdClient.WatchConfig("database-config", func(data []byte) {
         var newConfig DatabaseConfig
-        if err := json.Unmarshal([]byte(data), &newConfig); err != nil {
+        if err := json.Unmarshal(data, &newConfig); err != nil {
             log.Printf("解析配置失败: %v", err)
             return
         }
 
+        log.Printf("数据库配置已更新: %+v", newConfig)
         dbConfig = newConfig
         // 更新数据库连接池
         updateDBConnection()
     })
+}
+
+// 保存配置示例
+func saveConfigExample() {
+    etcdClient, err := config.NewEtcdClient([]string{"etcd:2379"}, "mall-go")
+    if err != nil {
+        log.Fatalf("初始化Etcd客户端失败: %v", err)
+    }
+    defer etcdClient.Close()
+
+    // 创建配置
+    dbConfig := DatabaseConfig{
+        Host:     "mysql",
+        Port:     3306,
+        Username: "mall_user",
+        Password: "mall_password",
+        Database: "mall",
+    }
+
+    // 保存配置
+    if err := etcdClient.SaveConfig("database-config", dbConfig); err != nil {
+        log.Fatalf("保存数据库配置失败: %v", err)
+    }
+
+    log.Println("配置已保存到Etcd")
 }
 ```
 
@@ -1586,7 +1623,7 @@ func (ps *ProductServiceImpl) UpdateNewStatus(ids []uint, newStatus int) error {
 ### 8. 商品仓库实现 (internal/repository)
 
 ```go
-// internal/repository/product_repository.go - 商品仓库接口
+// internal/repository/product_repository.go - 商品仓储接口
 package repository
 
 import "mall-go/internal/model"
@@ -1602,7 +1639,7 @@ type ProductRepository interface {
 	UpdateNewStatus(ids []uint, newStatus int) error
 }
 
-// internal/repository/impl/product_repository_impl.go - 商品仓库实现
+// internal/repository/impl/product_repository_impl.go - 商品仓储实现
 package impl
 
 import (

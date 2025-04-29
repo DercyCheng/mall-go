@@ -47,7 +47,16 @@ func InitMySQL(username, password, host, port, dbname string) error {
 	return nil
 }
 
-// GetDB 获取数据库连接
-func GetDB() *gorm.DB {
-	return DB
+// CloseDB 关闭数据库连接
+func CloseDB() error {
+	if DB == nil {
+		return nil
+	}
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return err
+	}
+
+	return sqlDB.Close()
 }
