@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 
-	"mall-go/pkg/errors"
 	"mall-go/services/user-service/application/dto"
 	"mall-go/services/user-service/application/service"
 	"mall-go/services/user-service/domain/model"
@@ -109,9 +108,7 @@ func TestUserService_Register_WithGomock(t *testing.T) {
 		// 验证结果
 		assert.Error(t, err)
 		assert.Empty(t, id)
-		appErr, ok := errors.As(err)
-		assert.True(t, ok)
-		assert.Equal(t, errors.CodeUserAlreadyExists, appErr.Code)
+		assert.Equal(t, "username already exists", err.Error())
 	})
 
 	// 测试用例3：邮箱已存在
@@ -148,9 +145,7 @@ func TestUserService_Register_WithGomock(t *testing.T) {
 		// 验证结果
 		assert.Error(t, err)
 		assert.Empty(t, id)
-		appErr, ok := errors.As(err)
-		assert.True(t, ok)
-		assert.Equal(t, errors.CodeUserAlreadyExists, appErr.Code)
+		assert.Equal(t, "email already in use", err.Error())
 	})
 }
 
@@ -199,12 +194,10 @@ func TestUserService_Login_WithGomock(t *testing.T) {
 			FindByUsername(gomock.Any(), "testuser").
 			Return(expectedUser, nil)
 
-		// 2. 获取用户角色
-		mockRoleRepo.EXPECT().
-			GetUserRoles(gomock.Any(), "user-123").
-			Return([]*model.Role{
-				{ID: "role-1", Name: "USER", Description: "Normal User"},
-			}, nil)
+		// 2. 更新登录时间
+		mockUserRepo.EXPECT().
+			Update(gomock.Any(), gomock.Any()).
+			Return(nil)
 
 		// 执行测试
 		resp, err := userService.Login(context.Background(), req)
@@ -238,9 +231,7 @@ func TestUserService_Login_WithGomock(t *testing.T) {
 		// 验证结果
 		assert.Error(t, err)
 		assert.Nil(t, resp)
-		appErr, ok := errors.As(err)
-		assert.True(t, ok)
-		assert.Equal(t, errors.CodeInvalidCredentials, appErr.Code)
+		assert.Equal(t, "invalid username or password", err.Error())
 	})
 
 	// 测试用例3：密码错误
@@ -274,9 +265,7 @@ func TestUserService_Login_WithGomock(t *testing.T) {
 		// 验证结果
 		assert.Error(t, err)
 		assert.Nil(t, resp)
-		appErr, ok := errors.As(err)
-		assert.True(t, ok)
-		assert.Equal(t, errors.CodeInvalidCredentials, appErr.Code)
+		assert.Equal(t, "invalid username or password", err.Error())
 	})
 
 	// 测试用例4：账号已禁用
@@ -294,7 +283,7 @@ func TestUserService_Login_WithGomock(t *testing.T) {
 			Password:  string(hashedPassword),
 			Email:     "disabled@example.com",
 			NickName:  "Disabled User",
-			Status:    0, // 账号禁用
+			Status:    model.UserStatusInactive, // 账号禁用
 			CreatedAt: time.Now(),
 		}
 
@@ -310,8 +299,6 @@ func TestUserService_Login_WithGomock(t *testing.T) {
 		// 验证结果
 		assert.Error(t, err)
 		assert.Nil(t, resp)
-		appErr, ok := errors.As(err)
-		assert.True(t, ok)
-		assert.Equal(t, errors.CodeInvalidCredentials, appErr.Code)
+		assert.Equal(t, "user account is inactive", err.Error())
 	})
 }

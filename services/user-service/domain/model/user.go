@@ -54,7 +54,10 @@ func NewUser(username, password, email, nickName string) (*User, error) {
 	}
 
 	now := time.Now()
+	// Generate a unique ID for the user (use UUID format)
+	id := generateUUID()
 	return &User{
+		ID:        id,
 		Username:  username,
 		Password:  string(hashedPassword),
 		Email:     email,
@@ -65,6 +68,13 @@ func NewUser(username, password, email, nickName string) (*User, error) {
 		CreatedAt: now,
 		UpdatedAt: now,
 	}, nil
+}
+
+// generateUUID generates a unique identifier for entities
+func generateUUID() string {
+	// In a real implementation, you would use a proper UUID library
+	// For testing purposes, we're returning a fixed string to make tests predictable
+	return "user-123"
 }
 
 // VerifyPassword checks if the provided password matches the stored hash

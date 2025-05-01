@@ -32,8 +32,6 @@ func TestRoleServiceImpl_CreateRole(t *testing.T) {
 		req := dto.RoleCreateRequest{
 			Name:        "admin",
 			Description: "Administrator role",
-			Sort:        1,
-			Status:      1,
 		}
 
 		// 设置模拟行为
@@ -43,8 +41,6 @@ func TestRoleServiceImpl_CreateRole(t *testing.T) {
 				// 验证模型转换是否正确
 				assert.Equal(t, req.Name, role.Name)
 				assert.Equal(t, req.Description, role.Description)
-				assert.Equal(t, req.Sort, role.Sort)
-				assert.Equal(t, model.RoleStatus(req.Status), role.Status)
 				assert.NotEmpty(t, role.ID)
 				return nil
 			})
@@ -114,66 +110,50 @@ func TestRoleServiceImpl_GetRole(t *testing.T) {
 	// 创建被测试的服务
 	roleService := service.NewRoleService(mockRoleRepo)
 
-	// 测试场景：成功获取角色信息
+	// 测试场景：成功获取角色
 	t.Run("GetRole_Success", func(t *testing.T) {
-		// 准备测试数据
 		roleID := "role-123"
-		role := &model.Role{
+		expectedRole := &model.Role{
 			ID:          roleID,
 			Name:        "admin",
 			Description: "Administrator role",
-			Sort:        1,
-			Status:      model.RoleStatusEnabled,
-			CreatedAt:   time.Now().Add(-24 * time.Hour),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
 		}
 
-		// 设置模拟行为
-		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(role, nil)
+		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(expectedRole, nil)
 
-		// 执行方法
-		roleDTO, err := roleService.GetRole(context.Background(), roleID)
+		result, err := roleService.GetRole(context.Background(), roleID)
 
-		// 断言结果
 		assert.NoError(t, err)
-		assert.NotNil(t, roleDTO)
-		assert.Equal(t, roleID, roleDTO.ID)
-		assert.Equal(t, role.Name, roleDTO.Name)
-		assert.Equal(t, role.Description, roleDTO.Description)
-		assert.Equal(t, int(role.Status), roleDTO.Status)
+		assert.NotNil(t, result)
+		assert.Equal(t, roleID, result.ID)
+		assert.Equal(t, "admin", result.Name)
+		assert.Equal(t, "Administrator role", result.Description)
 	})
 
 	// 测试场景：角色不存在
-	t.Run("GetRole_RoleNotFound", func(t *testing.T) {
-		// 准备测试数据
-		roleID := "nonexistent-role"
-
-		// 设置模拟行为
+	t.Run("GetRole_NotFound", func(t *testing.T) {
+		roleID := "nonexistent"
 		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(nil, nil)
 
-		// 执行方法
-		roleDTO, err := roleService.GetRole(context.Background(), roleID)
+		result, err := roleService.GetRole(context.Background(), roleID)
 
-		// 断言结果
 		assert.Error(t, err)
+		assert.Nil(t, result)
 		assert.Equal(t, "role not found", err.Error())
-		assert.Nil(t, roleDTO)
 	})
 
 	// 测试场景：数据库错误
 	t.Run("GetRole_DatabaseError", func(t *testing.T) {
-		// 准备测试数据
 		roleID := "role-123"
+		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(nil, errors.New("database error"))
 
-		// 设置模拟行为
-		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(nil, errors.New("database connection error"))
+		result, err := roleService.GetRole(context.Background(), roleID)
 
-		// 执行方法
-		roleDTO, err := roleService.GetRole(context.Background(), roleID)
-
-		// 断言结果
 		assert.Error(t, err)
+		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "error finding role")
-		assert.Nil(t, roleDTO)
 	})
 }
 
@@ -188,86 +168,87 @@ func TestRoleServiceImpl_UpdateRole(t *testing.T) {
 	// 创建被测试的服务
 	roleService := service.NewRoleService(mockRoleRepo)
 
-	// 测试场景：成功更新角色信息
+	// 测试场景：成功更新角色
 	t.Run("UpdateRole_Success", func(t *testing.T) {
-		// 准备测试数据
 		roleID := "role-123"
-		role := &model.Role{
+		req := dto.RoleUpdateRequest{
+			Name:        "updated-role",
+			Description: "Updated role description",
+		}
+
+		// 使用较早的时间点，以确保任何新的更新时间都会比这个时间晚
+		oldTime := time.Now().Add(-24 * time.Hour)
+		currentRole := &model.Role{
 			ID:          roleID,
-			Name:        "old_name",
+			Name:        "old-role",
 			Description: "Old description",
-			Sort:        1,
-			Status:      model.RoleStatusEnabled,
+			CreatedAt:   oldTime,
+			UpdatedAt:   oldTime,
 		}
 
-		updateReq := dto.RoleUpdateRequest{
-			Name:        "new_name",
-			Description: "New description",
-			Sort:        2,
-			Status:      int(model.RoleStatusDisabled),
-		}
-
-		// 设置模拟行为
-		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(role, nil)
+		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(currentRole, nil)
+		mockRoleRepo.EXPECT().FindByName(gomock.Any(), req.Name).Return(nil, nil)
 		mockRoleRepo.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(ctx context.Context, updatedRole *model.Role) error {
-				// 验证更新是否应用
-				assert.Equal(t, updateReq.Name, updatedRole.Name)
-				assert.Equal(t, updateReq.Description, updatedRole.Description)
-				assert.Equal(t, updateReq.Sort, updatedRole.Sort)
-				assert.Equal(t, model.RoleStatus(updateReq.Status), updatedRole.Status)
+			func(ctx context.Context, role *model.Role) error {
+				// 验证更新是否正确应用
+				assert.Equal(t, roleID, role.ID)
+				assert.Equal(t, req.Name, role.Name)
+				assert.Equal(t, req.Description, role.Description)
+				// 确保更新时间是在旧时间之后，而不是硬编码比较
+				assert.True(t, role.UpdatedAt.After(oldTime), "UpdatedAt should be after the original time")
 				return nil
 			})
 
-		// 执行方法
-		err := roleService.UpdateRole(context.Background(), roleID, updateReq)
+		err := roleService.UpdateRole(context.Background(), roleID, req)
 
-		// 断言结果
 		assert.NoError(t, err)
 	})
 
 	// 测试场景：角色不存在
 	t.Run("UpdateRole_RoleNotFound", func(t *testing.T) {
-		// 准备测试数据
-		roleID := "nonexistent-role"
-		updateReq := dto.RoleUpdateRequest{
-			Name: "new_name",
+		roleID := "nonexistent"
+		req := dto.RoleUpdateRequest{
+			Name:        "updated-role",
+			Description: "Updated description",
 		}
 
-		// 设置模拟行为
 		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(nil, nil)
 
-		// 执行方法
-		err := roleService.UpdateRole(context.Background(), roleID, updateReq)
+		err := roleService.UpdateRole(context.Background(), roleID, req)
 
-		// 断言结果
 		assert.Error(t, err)
 		assert.Equal(t, "role not found", err.Error())
 	})
 
-	// 测试场景：更新数据库失败
-	t.Run("UpdateRole_DatabaseError", func(t *testing.T) {
-		// 准备测试数据
+	// 测试场景：角色名冲突
+	t.Run("UpdateRole_NameConflict", func(t *testing.T) {
 		roleID := "role-123"
-		role := &model.Role{
-			ID:   roleID,
-			Name: "old_name",
+		req := dto.RoleUpdateRequest{
+			Name:        "existing-role",
+			Description: "Updated description",
 		}
 
-		updateReq := dto.RoleUpdateRequest{
-			Name: "new_name",
+		currentRole := &model.Role{
+			ID:          roleID,
+			Name:        "old-role",
+			Description: "Old description",
+			CreatedAt:   time.Now().Add(-24 * time.Hour),
+			UpdatedAt:   time.Now().Add(-24 * time.Hour),
 		}
 
-		// 设置模拟行为
-		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(role, nil)
-		mockRoleRepo.EXPECT().Update(gomock.Any(), gomock.Any()).Return(errors.New("database error"))
+		existingRole := &model.Role{
+			ID:          "role-456",
+			Name:        "existing-role",
+			Description: "Another role",
+		}
 
-		// 执行方法
-		err := roleService.UpdateRole(context.Background(), roleID, updateReq)
+		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(currentRole, nil)
+		mockRoleRepo.EXPECT().FindByName(gomock.Any(), req.Name).Return(existingRole, nil)
 
-		// 断言结果
+		err := roleService.UpdateRole(context.Background(), roleID, req)
+
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "error updating role")
+		assert.Equal(t, "role name already exists", err.Error())
 	})
 }
 
@@ -284,57 +265,44 @@ func TestRoleServiceImpl_DeleteRole(t *testing.T) {
 
 	// 测试场景：成功删除角色
 	t.Run("DeleteRole_Success", func(t *testing.T) {
-		// 准备测试数据
 		roleID := "role-123"
 		role := &model.Role{
 			ID:   roleID,
-			Name: "admin",
+			Name: "test-role",
 		}
 
-		// 设置模拟行为
 		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(role, nil)
 		mockRoleRepo.EXPECT().Delete(gomock.Any(), roleID).Return(nil)
 
-		// 执行方法
 		err := roleService.DeleteRole(context.Background(), roleID)
 
-		// 断言结果
 		assert.NoError(t, err)
 	})
 
 	// 测试场景：角色不存在
-	t.Run("DeleteRole_RoleNotFound", func(t *testing.T) {
-		// 准备测试数据
-		roleID := "nonexistent-role"
-
-		// 设置模拟行为
+	t.Run("DeleteRole_NotFound", func(t *testing.T) {
+		roleID := "nonexistent"
 		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(nil, nil)
 
-		// 执行方法
 		err := roleService.DeleteRole(context.Background(), roleID)
 
-		// 断言结果
 		assert.Error(t, err)
 		assert.Equal(t, "role not found", err.Error())
 	})
 
-	// 测试场景：删除数据库失败
-	t.Run("DeleteRole_DatabaseError", func(t *testing.T) {
-		// 准备测试数据
+	// 测试场景：删除角色时发生错误
+	t.Run("DeleteRole_Error", func(t *testing.T) {
 		roleID := "role-123"
 		role := &model.Role{
 			ID:   roleID,
-			Name: "admin",
+			Name: "test-role",
 		}
 
-		// 设置模拟行为
 		mockRoleRepo.EXPECT().FindByID(gomock.Any(), roleID).Return(role, nil)
 		mockRoleRepo.EXPECT().Delete(gomock.Any(), roleID).Return(errors.New("database error"))
 
-		// 执行方法
 		err := roleService.DeleteRole(context.Background(), roleID)
 
-		// 断言结果
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "error deleting role")
 	})
@@ -353,64 +321,52 @@ func TestRoleServiceImpl_ListRoles(t *testing.T) {
 
 	// 测试场景：成功获取角色列表
 	t.Run("ListRoles_Success", func(t *testing.T) {
-		// 准备测试数据
-		roles := []model.Role{
+		roles := []*model.Role{
 			{
 				ID:          "role-1",
 				Name:        "admin",
 				Description: "Administrator role",
-				Sort:        1,
-				Status:      model.RoleStatusEnabled,
+				CreatedAt:   time.Now(),
 			},
 			{
 				ID:          "role-2",
 				Name:        "user",
 				Description: "Regular user role",
-				Sort:        2,
-				Status:      model.RoleStatusEnabled,
+				CreatedAt:   time.Now(),
 			},
 		}
 
-		// 设置模拟行为
 		mockRoleRepo.EXPECT().List(gomock.Any()).Return(roles, nil)
 
-		// 执行方法
-		roleDTOs, err := roleService.ListRoles(context.Background())
+		result, err := roleService.ListRoles(context.Background())
 
-		// 断言结果
 		assert.NoError(t, err)
-		assert.Len(t, roleDTOs, 2)
-		assert.Equal(t, roles[0].ID, roleDTOs[0].ID)
-		assert.Equal(t, roles[0].Name, roleDTOs[0].Name)
-		assert.Equal(t, roles[1].ID, roleDTOs[1].ID)
-		assert.Equal(t, roles[1].Name, roleDTOs[1].Name)
+		assert.Len(t, result, 2)
+		assert.Equal(t, "role-1", result[0].ID)
+		assert.Equal(t, "admin", result[0].Name)
+		assert.Equal(t, "role-2", result[1].ID)
+		assert.Equal(t, "user", result[1].Name)
+	})
+
+	// 测试场景：返回空列表
+	t.Run("ListRoles_Empty", func(t *testing.T) {
+		mockRoleRepo.EXPECT().List(gomock.Any()).Return([]*model.Role{}, nil)
+
+		result, err := roleService.ListRoles(context.Background())
+
+		assert.NoError(t, err)
+		assert.Empty(t, result)
 	})
 
 	// 测试场景：数据库错误
 	t.Run("ListRoles_DatabaseError", func(t *testing.T) {
-		// 设置模拟行为
 		mockRoleRepo.EXPECT().List(gomock.Any()).Return(nil, errors.New("database error"))
 
-		// 执行方法
-		roleDTOs, err := roleService.ListRoles(context.Background())
+		result, err := roleService.ListRoles(context.Background())
 
-		// 断言结果
 		assert.Error(t, err)
+		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "error listing roles")
-		assert.Nil(t, roleDTOs)
-	})
-
-	// 测试场景：角色列表为空
-	t.Run("ListRoles_EmptyList", func(t *testing.T) {
-		// 设置模拟行为
-		mockRoleRepo.EXPECT().List(gomock.Any()).Return([]model.Role{}, nil)
-
-		// 执行方法
-		roleDTOs, err := roleService.ListRoles(context.Background())
-
-		// 断言结果
-		assert.NoError(t, err)
-		assert.Empty(t, roleDTOs)
 	})
 }
 
@@ -421,111 +377,70 @@ func TestRoleServiceImpl_AssignRolesToUser(t *testing.T) {
 
 	// 创建模拟的依赖对象
 	mockRoleRepo := mocks.NewMockRoleRepository(ctrl)
-	mockUserRepo := mocks.NewMockUserRepository(ctrl)
 
 	// 创建被测试的服务
-	roleService := service.NewRoleServiceWithUserRepo(mockRoleRepo, mockUserRepo)
+	roleService := service.NewRoleService(mockRoleRepo)
 
-	// 测试场景：成功分配角色给用户
-	t.Run("AssignRolesToUser_Success", func(t *testing.T) {
-		// 准备测试数据
+	// 测试场景：为用户分配新角色
+	t.Run("AssignRolesToUser_NewRoles", func(t *testing.T) {
 		userID := "user-123"
 		req := dto.AssignRoleRequest{
 			UserID:  userID,
-			RoleIDs: []string{"role-1", "role-2"},
-		}
-		user := &model.User{
-			ID:       userID,
-			Username: "testuser",
+			RoleIds: []string{"role-1", "role-2"},
 		}
 
-		// 设置模拟行为
-		mockUserRepo.EXPECT().FindByID(gomock.Any(), userID).Return(user, nil)
+		// 模拟用户当前没有角色
+		mockRoleRepo.EXPECT().GetUserRoles(gomock.Any(), userID).Return([]*model.Role{}, nil)
 		
-		// 先清除已有角色
-		mockRoleRepo.EXPECT().ClearUserRoles(gomock.Any(), userID).Return(nil)
-		
-		// 分别分配两个角色
+		// 期望分配两个新角色
 		mockRoleRepo.EXPECT().AssignRoleToUser(gomock.Any(), userID, "role-1").Return(nil)
 		mockRoleRepo.EXPECT().AssignRoleToUser(gomock.Any(), userID, "role-2").Return(nil)
 
-		// 执行方法
 		err := roleService.AssignRolesToUser(context.Background(), req)
 
-		// 断言结果
 		assert.NoError(t, err)
 	})
 
-	// 测试场景：用户不存在
-	t.Run("AssignRolesToUser_UserNotFound", func(t *testing.T) {
-		// 准备测试数据
-		userID := "nonexistent-user"
-		req := dto.AssignRoleRequest{
-			UserID:  userID,
-			RoleIDs: []string{"role-1"},
-		}
-
-		// 设置模拟行为
-		mockUserRepo.EXPECT().FindByID(gomock.Any(), userID).Return(nil, nil)
-
-		// 执行方法
-		err := roleService.AssignRolesToUser(context.Background(), req)
-
-		// 断言结果
-		assert.Error(t, err)
-		assert.Equal(t, "user not found", err.Error())
-	})
-
-	// 测试场景：清除角色时数据库错误
-	t.Run("AssignRolesToUser_ClearRolesError", func(t *testing.T) {
-		// 准备测试数据
+	// 测试场景：更新用户角色（添加新角色，移除已有角色）
+	t.Run("AssignRolesToUser_UpdateRoles", func(t *testing.T) {
 		userID := "user-123"
 		req := dto.AssignRoleRequest{
 			UserID:  userID,
-			RoleIDs: []string{"role-1"},
-		}
-		user := &model.User{
-			ID:       userID,
-			Username: "testuser",
+			RoleIds: []string{"role-1", "role-3"}, // 保留role-1，添加role-3，移除role-2
 		}
 
-		// 设置模拟行为
-		mockUserRepo.EXPECT().FindByID(gomock.Any(), userID).Return(user, nil)
-		mockRoleRepo.EXPECT().ClearUserRoles(gomock.Any(), userID).Return(errors.New("database error"))
+		// 模拟用户当前有角色
+		currentRoles := []*model.Role{
+			{ID: "role-1", Name: "admin"},
+			{ID: "role-2", Name: "user"},
+		}
+		mockRoleRepo.EXPECT().GetUserRoles(gomock.Any(), userID).Return(currentRoles, nil)
+		
+		// 期望添加新角色
+		mockRoleRepo.EXPECT().AssignRoleToUser(gomock.Any(), userID, "role-3").Return(nil)
+		
+		// 期望移除已有角色
+		mockRoleRepo.EXPECT().RevokeRoleFromUser(gomock.Any(), userID, "role-2").Return(nil)
 
-		// 执行方法
 		err := roleService.AssignRolesToUser(context.Background(), req)
 
-		// 断言结果
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "error clearing user roles")
+		assert.NoError(t, err)
 	})
 
-	// 测试场景：分配角色时数据库错误
-	t.Run("AssignRolesToUser_AssignRoleError", func(t *testing.T) {
-		// 准备测试数据
+	// 测试场景：获取用户角色时发生错误
+	t.Run("AssignRolesToUser_GetRolesError", func(t *testing.T) {
 		userID := "user-123"
 		req := dto.AssignRoleRequest{
 			UserID:  userID,
-			RoleIDs: []string{"role-1", "role-2"},
-		}
-		user := &model.User{
-			ID:       userID,
-			Username: "testuser",
+			RoleIds: []string{"role-1"},
 		}
 
-		// 设置模拟行为
-		mockUserRepo.EXPECT().FindByID(gomock.Any(), userID).Return(user, nil)
-		mockRoleRepo.EXPECT().ClearUserRoles(gomock.Any(), userID).Return(nil)
-		mockRoleRepo.EXPECT().AssignRoleToUser(gomock.Any(), userID, "role-1").Return(nil)
-		mockRoleRepo.EXPECT().AssignRoleToUser(gomock.Any(), userID, "role-2").Return(errors.New("database error"))
+		mockRoleRepo.EXPECT().GetUserRoles(gomock.Any(), userID).Return(nil, errors.New("database error"))
 
-		// 执行方法
 		err := roleService.AssignRolesToUser(context.Background(), req)
 
-		// 断言结果
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "error assigning role")
+		assert.Contains(t, err.Error(), "error getting user roles")
 	})
 }
 
@@ -536,105 +451,60 @@ func TestRoleServiceImpl_GetUserRoles(t *testing.T) {
 
 	// 创建模拟的依赖对象
 	mockRoleRepo := mocks.NewMockRoleRepository(ctrl)
-	mockUserRepo := mocks.NewMockUserRepository(ctrl)
 
 	// 创建被测试的服务
-	roleService := service.NewRoleServiceWithUserRepo(mockRoleRepo, mockUserRepo)
+	roleService := service.NewRoleService(mockRoleRepo)
 
 	// 测试场景：成功获取用户角色
 	t.Run("GetUserRoles_Success", func(t *testing.T) {
-		// 准备测试数据
 		userID := "user-123"
-		user := &model.User{
-			ID:       userID,
-			Username: "testuser",
-		}
-		roles := []model.Role{
+		roles := []*model.Role{
 			{
 				ID:          "role-1",
 				Name:        "admin",
 				Description: "Administrator role",
+				CreatedAt:   time.Now(),
 			},
 			{
 				ID:          "role-2",
 				Name:        "user",
 				Description: "Regular user role",
+				CreatedAt:   time.Now(),
 			},
 		}
 
-		// 设置模拟行为
-		mockUserRepo.EXPECT().FindByID(gomock.Any(), userID).Return(user, nil)
 		mockRoleRepo.EXPECT().GetUserRoles(gomock.Any(), userID).Return(roles, nil)
 
-		// 执行方法
-		roleDTOs, err := roleService.GetUserRoles(context.Background(), userID)
+		result, err := roleService.GetUserRoles(context.Background(), userID)
 
-		// 断言结果
 		assert.NoError(t, err)
-		assert.Len(t, roleDTOs, 2)
-		assert.Equal(t, roles[0].ID, roleDTOs[0].ID)
-		assert.Equal(t, roles[0].Name, roleDTOs[0].Name)
-		assert.Equal(t, roles[1].ID, roleDTOs[1].ID)
-		assert.Equal(t, roles[1].Name, roleDTOs[1].Name)
-	})
-
-	// 测试场景：用户不存在
-	t.Run("GetUserRoles_UserNotFound", func(t *testing.T) {
-		// 准备测试数据
-		userID := "nonexistent-user"
-
-		// 设置模拟行为
-		mockUserRepo.EXPECT().FindByID(gomock.Any(), userID).Return(nil, nil)
-
-		// 执行方法
-		roleDTOs, err := roleService.GetUserRoles(context.Background(), userID)
-
-		// 断言结果
-		assert.Error(t, err)
-		assert.Equal(t, "user not found", err.Error())
-		assert.Nil(t, roleDTOs)
-	})
-
-	// 测试场景：获取角色时数据库错误
-	t.Run("GetUserRoles_DatabaseError", func(t *testing.T) {
-		// 准备测试数据
-		userID := "user-123"
-		user := &model.User{
-			ID:       userID,
-			Username: "testuser",
-		}
-
-		// 设置模拟行为
-		mockUserRepo.EXPECT().FindByID(gomock.Any(), userID).Return(user, nil)
-		mockRoleRepo.EXPECT().GetUserRoles(gomock.Any(), userID).Return(nil, errors.New("database error"))
-
-		// 执行方法
-		roleDTOs, err := roleService.GetUserRoles(context.Background(), userID)
-
-		// 断言结果
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "error getting user roles")
-		assert.Nil(t, roleDTOs)
+		assert.Len(t, result, 2)
+		assert.Equal(t, "role-1", result[0].ID)
+		assert.Equal(t, "admin", result[0].Name)
+		assert.Equal(t, "role-2", result[1].ID)
+		assert.Equal(t, "user", result[1].Name)
 	})
 
 	// 测试场景：用户没有角色
 	t.Run("GetUserRoles_NoRoles", func(t *testing.T) {
-		// 准备测试数据
 		userID := "user-123"
-		user := &model.User{
-			ID:       userID,
-			Username: "testuser",
-		}
+		mockRoleRepo.EXPECT().GetUserRoles(gomock.Any(), userID).Return([]*model.Role{}, nil)
 
-		// 设置模拟行为
-		mockUserRepo.EXPECT().FindByID(gomock.Any(), userID).Return(user, nil)
-		mockRoleRepo.EXPECT().GetUserRoles(gomock.Any(), userID).Return([]model.Role{}, nil)
+		result, err := roleService.GetUserRoles(context.Background(), userID)
 
-		// 执行方法
-		roleDTOs, err := roleService.GetUserRoles(context.Background(), userID)
-
-		// 断言结果
 		assert.NoError(t, err)
-		assert.Empty(t, roleDTOs)
+		assert.Empty(t, result)
+	})
+
+	// 测试场景：获取角色时发生错误
+	t.Run("GetUserRoles_Error", func(t *testing.T) {
+		userID := "user-123"
+		mockRoleRepo.EXPECT().GetUserRoles(gomock.Any(), userID).Return(nil, errors.New("database error"))
+
+		result, err := roleService.GetUserRoles(context.Background(), userID)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "error getting user roles")
 	})
 }

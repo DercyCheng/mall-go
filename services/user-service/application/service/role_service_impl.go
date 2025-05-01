@@ -115,7 +115,11 @@ func (s *RoleServiceImpl) DeleteRole(ctx context.Context, id string) error {
 	}
 
 	// Delete role
-	return s.roleRepo.Delete(ctx, id)
+	if err := s.roleRepo.Delete(ctx, id); err != nil {
+		return fmt.Errorf("error deleting role: %w", err)
+	}
+	
+	return nil
 }
 
 // ListRoles retrieves a list of all roles

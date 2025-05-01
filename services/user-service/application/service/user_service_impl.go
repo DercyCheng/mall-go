@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 
+	"mall-go/pkg/errors"
 	"mall-go/services/user-service/application/assembler"
 	"mall-go/services/user-service/application/dto"
 	"mall-go/services/user-service/domain/model"
@@ -47,7 +47,7 @@ func (s *UserServiceImpl) Register(ctx context.Context, req dto.UserCreateReques
 	}
 
 	if existingUser != nil {
-		return "", errors.New("username already exists")
+		return "", errors.BusinessError(errors.CodeUserAlreadyExists, "username already exists")
 	}
 
 	// Check if email already exists
@@ -57,7 +57,7 @@ func (s *UserServiceImpl) Register(ctx context.Context, req dto.UserCreateReques
 	}
 
 	if existingEmail != nil {
-		return "", errors.New("email already in use")
+		return "", errors.BusinessError(errors.CodeUserAlreadyExists, "email already in use")
 	}
 
 	// Create new user domain model
@@ -66,6 +66,11 @@ func (s *UserServiceImpl) Register(ctx context.Context, req dto.UserCreateReques
 		return "", fmt.Errorf("error creating user model: %w", err)
 	}
 
+	// Set phone number if provided
+	if req.Phone != "" {
+		user.Phone = req.Phone
+	}
+	
 	// Set icon if provided
 	if req.Icon != "" {
 		user.Icon = req.Icon
@@ -107,17 +112,17 @@ func (s *UserServiceImpl) Login(ctx context.Context, req dto.UserLoginRequest) (
 	}
 
 	if user == nil {
-		return nil, errors.New("invalid username or password")
+		return nil, errors.UnauthorizedError(errors.CodeInvalidCredentials, "invalid username or password")
 	}
 
 	// Verify password
 	if !user.VerifyPassword(req.Password) {
-		return nil, errors.New("invalid username or password")
+		return nil, errors.UnauthorizedError(errors.CodeInvalidCredentials, "invalid username or password")
 	}
 
 	// Check if user is active
 	if user.Status != model.UserStatusActive {
-		return nil, errors.New("user account is inactive")
+		return nil, errors.UnauthorizedError(errors.CodeInvalidCredentials, "user account is inactive")
 	}
 
 	// Record login
@@ -267,7 +272,11 @@ func (s *UserServiceImpl) DeleteUser(ctx context.Context, id string) error {
 	}
 
 	// Delete user
-	return s.userRepo.Delete(ctx, id)
+	if err := s.userRepo.Delete(ctx, id); err != nil {
+		return fmt.Errorf("error deleting user: %w", err)
+	}
+	
+	return nil
 }
 
 // ChangePassword changes a user's password
