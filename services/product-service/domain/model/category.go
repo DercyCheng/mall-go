@@ -19,6 +19,7 @@ type Category struct {
 	Icon         string // 图标
 	Keywords     string // 关键字
 	Description  string // 描述
+	Children     []*Category // 子分类
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }

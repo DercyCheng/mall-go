@@ -332,9 +332,40 @@ func (s *ProductService) UpdatePublishStatus(ctx context.Context, req *dto.Produ
 	return nil
 }
 
+// UpdatePublishStatusDirect with direct IDs and status parameters
+func (s *ProductService) UpdatePublishStatusDirect(ctx context.Context, ids []string, status int) error {
+	return s.productRepository.UpdatePublishStatus(ctx, ids, status)
+}
+
+// UpdatePublishStatusWithRequest is the original implementation
+func (s *ProductService) UpdatePublishStatusWithRequest(ctx context.Context, req *dto.ProductStatusBatchRequest) error {
+	err := s.productRepository.UpdatePublishStatus(ctx, req.IDs, req.Status)
+	if err != nil {
+		return err
+	}
+
+	// 发布状态变更事件
+	if req.Status == 1 { // 上架
+		for _, id := range req.IDs {
+			product, _ := s.productRepository.FindByID(ctx, id)
+			if product != nil {
+				publishEvent := event.NewProductPublishedEvent(id, product.Name)
+				_ = s.eventPublisher.Publish(ctx, publishEvent)
+			}
+		}
+	}
+
+	return nil
+}
+
 // UpdateNewStatus 更新新品状态
 func (s *ProductService) UpdateNewStatus(ctx context.Context, req *dto.ProductStatusBatchRequest) error {
 	return s.productRepository.UpdateNewStatus(ctx, req.IDs, req.Status)
+}
+
+// UpdateNewStatusDirect with direct IDs and status parameters
+func (s *ProductService) UpdateNewStatusDirect(ctx context.Context, ids []string, status int) error {
+	return s.productRepository.UpdateNewStatus(ctx, ids, status)
 }
 
 // UpdateRecommendStatus 更新推荐状态
@@ -342,8 +373,28 @@ func (s *ProductService) UpdateRecommendStatus(ctx context.Context, req *dto.Pro
 	return s.productRepository.UpdateRecommendStatus(ctx, req.IDs, req.Status)
 }
 
+// UpdateRecommendStatusDirect with direct IDs and status parameters
+func (s *ProductService) UpdateRecommendStatusDirect(ctx context.Context, ids []string, status int) error {
+	return s.productRepository.UpdateRecommendStatus(ctx, ids, status)
+}
+
 // TransferCategory 转移商品分类
 func (s *ProductService) TransferCategory(ctx context.Context, req *dto.CategoryTransferRequest) error {
+	for _, productID := range req.ProductIDs {
+		if err := s.domainService.TransferCategory(ctx, productID, req.CategoryID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// TransferCategoryDirect with direct productID and categoryID parameters
+func (s *ProductService) TransferCategoryDirect(ctx context.Context, productID string, categoryID string) error {
+	return s.domainService.TransferCategory(ctx, productID, categoryID)
+}
+
+// TransferCategoryWithRequest handles batch transfers with a request object
+func (s *ProductService) TransferCategoryWithRequest(ctx context.Context, req *dto.CategoryTransferRequest) error {
 	for _, productID := range req.ProductIDs {
 		if err := s.domainService.TransferCategory(ctx, productID, req.CategoryID); err != nil {
 			return err

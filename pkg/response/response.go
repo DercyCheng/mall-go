@@ -147,6 +147,15 @@ func ValidationError(c *gin.Context, message string) {
 	})
 }
 
+// Fail 通用失败响应
+func Fail(c *gin.Context, code int, message string) {
+	c.JSON(code, Response{
+		Code:    code,
+		Message: message,
+		Data:    nil,
+	})
+}
+
 // Page 分页响应数据
 type Page struct {
 	List      interface{} `json:"list"`      // 分页数据
@@ -155,6 +164,9 @@ type Page struct {
 	PageSize  int         `json:"pageSize"`  // 每页记录数
 	TotalPage int         `json:"totalPage"` // 总页数
 }
+
+// PageResult 是Page的别名，保持兼容性
+type PageResult Page
 
 // PageSuccess 分页成功响应
 func PageSuccess(c *gin.Context, list interface{}, total int64, page, pageSize int) {

@@ -1,0 +1,107 @@
+# 服务配置
+server:
+  # 运行模式 debug/release/test
+  mode: debug
+  # 服务端口
+  port: 9090 # 修改为不太常用的端口号
+  # API前缀
+  apiPrefix: /api/v1
+
+# 数据库配置
+database:
+  host: localhost
+  port: 3306
+  name: mysql # 修改为系统默认的mysql数据库，用于测试连接
+  username: root
+  password: root
+  # 是否显示SQL日志
+  debug: true
+  # 连接池配置
+  maxIdleConns: 10
+  maxOpenConns: 100
+  connMaxLifetime: 3600
+
+# 日志配置
+log:
+  # 日志级别 debug/info/warn/error/fatal
+  level: info
+  # 日志文件路径
+  filePath: ./logs/product-service.log
+  # 最大保存天数
+  maxDays: 7
+
+# JWT配置
+jwt:
+  # 签名密钥
+  secret: mall-product-service-secret
+  # 过期时间(秒)
+  expire: 86400
+
+# 注册中心配置
+registry:
+  # 是否开启
+  enabled: false
+  # 地址
+  address: localhost:8500
+  # 服务名称
+  serviceName: product-service
+
+# 配置中心
+config:
+  # 是否开启
+  enabled: false
+  # 地址
+  address: localhost:2379
+  # 配置路径前缀
+  prefix: /mall/config
+  # 配置文件类型
+  type: yaml
+
+# 跨域配置
+cors:
+  # 是否允许所有来源
+  allowAllOrigins: true
+  # 允许的域
+  allowOrigins: []
+  # 允许的方法
+  allowMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  # 允许的请求头
+  allowHeaders:
+    - Origin
+    - Content-Length
+    - Content-Type
+    - Authorization
+
+# 缓存配置
+cache:
+  # 是否开启
+  enabled: false
+  # 类型 memory/redis
+  type: memory
+  # Redis配置
+  redis:
+    host: localhost
+    port: 6379
+    password: ""
+    db: 0
+    maxIdle: 10
+    maxActive: 100
+
+# 消息队列配置
+mq:
+  # 是否开启
+  enabled: false
+  # 类型 rabbitmq/kafka/nsq
+  type: rabbitmq
+  # RabbitMQ配置
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    vhost: /

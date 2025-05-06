@@ -18,6 +18,7 @@ type Brand struct {
 	ProductCount        int    // 产品数量
 	ProductCommentCount int    // 产品评价数量
 	BigPic              string // 专区大图
+	BrandStory          string // 品牌故事
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
