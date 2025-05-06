@@ -99,8 +99,8 @@ func getConfigPath() string {
 		return configPath
 	}
 
-	// Default to configs/config.yaml
-	return filepath.Join("configs", "config.yaml")
+	// Default to services/gateway-service/configs/config.yaml
+	return filepath.Join("services", "gateway-service", "configs", "config.yaml")
 }
 
 // getGinMode converts our app mode to Gin mode

@@ -19,6 +19,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/hashicorp/consul/api"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
@@ -124,6 +126,19 @@ func main() {
 		log.Fatalf("加载配置失败: %v", err)
 	}
 
+	// 注册服务到Consul
+	var serviceID string
+	if cfg.Registry.Type == "consul" && cfg.Registry.Address != "" {
+		serviceID, err = registerService(cfg.Registry, cfg.Server.Port)
+		if err != nil {
+			log.Printf("警告: 注册服务到Consul失败: %v", err)
+		} else {
+			log.Printf("服务已注册到Consul (ID: %s)", serviceID)
+			// 服务关闭时注销
+			defer deregisterService(cfg.Registry.Address, serviceID)
+		}
+	}
+
 	// 设置Gin模式
 	if cfg.Server.Mode == "release" {
 		gin.SetMode(gin.ReleaseMode)
@@ -197,4 +212,66 @@ func main() {
 	}
 
 	log.Println("服务器已安全关闭")
+}
+
+// registerService registers the service with Consul
+func registerService(cfg config.RegistryConfig, port int) (string, error) {
+	// Create a default Consul client
+	consulConfig := api.DefaultConfig()
+	consulConfig.Address = cfg.Address
+	client, err := api.NewClient(consulConfig)
+	if err != nil {
+		return "", fmt.Errorf("failed to create Consul client: %w", err)
+	}
+
+	// Get hostname for service registration
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "localhost"
+	}
+
+	// Create a unique service ID
+	serviceID := fmt.Sprintf("%s-%s", cfg.ServiceName, uuid.New().String())
+
+	// Create service registration
+	registration := &api.AgentServiceRegistration{
+		ID:      serviceID,
+		Name:    cfg.ServiceName,
+		Tags:    cfg.Tags,
+		Port:    port,
+		Address: hostname,
+		Check: &api.AgentServiceCheck{
+			HTTP:                           fmt.Sprintf("http://%s:%d/health", hostname, port),
+			Timeout:                        "5s",
+			Interval:                       "10s",
+			DeregisterCriticalServiceAfter: "30s",
+		},
+	}
+
+	// Register the service
+	if err := client.Agent().ServiceRegister(registration); err != nil {
+		return "", err
+	}
+
+	return serviceID, nil
+}
+
+// deregisterService deregisters the service from Consul
+func deregisterService(address, serviceID string) {
+	// Create a default Consul client
+	consulConfig := api.DefaultConfig()
+	consulConfig.Address = address
+	client, err := api.NewClient(consulConfig)
+	if err != nil {
+		log.Printf("Failed to create Consul client for deregistration: %v", err)
+		return
+	}
+
+	// Deregister the service
+	if err := client.Agent().ServiceDeregister(serviceID); err != nil {
+		log.Printf("Failed to deregister service: %v", err)
+		return
+	}
+
+	log.Printf("Service deregistered from Consul (ID: %s)", serviceID)
 }
