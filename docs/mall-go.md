@@ -114,7 +114,7 @@ func processOrders(orders []Order) {
 # Go版本的Dockerfile示例 - 更小、更简单
 FROM golang:1.20-alpine AS builder
 WORKDIR /app
-COPY . ./ 
+COPY . ./
 RUN go build -o mall-admin ./cmd/admin
 
 FROM alpine:latest
@@ -130,7 +130,7 @@ CMD ["./mall-admin"]
 # Java版本的Dockerfile示例
 FROM maven:3.8-openjdk-8 AS builder
 WORKDIR /app
-COPY pom.xml ./ 
+COPY pom.xml ./
 COPY src ./src
 RUN mvn package -DskipTests
 
@@ -207,34 +207,34 @@ if err := updateProduct(id, product); err != nil {
 
 ### Go 语言核心技术栈
 
-| 技术             | 说明                 | 选择理由                                   | 官网/仓库                                   |
-| ---------------- | -------------------- | ------------------------------------------ | ------------------------------------------- |
-| Go               | 编程语言             | 高性能、低资源占用、并发友好               | https://golang.org/                         |
-| Gin              | Web 框架             | 轻量、高性能、生态丰富                     | https://github.com/gin-gonic/gin            |
-| GORM             | ORM 框架             | 功能全面、易用、社区活跃                   | https://gorm.io/                            |
-| JWT-Go           | JWT 认证             | Go语言标准JWT实现，安全可靠                | https://github.com/golang-jwt/jwt           |
-| Go-Redis         | Redis 客户端         | 官方推荐，性能优异                         | https://github.com/go-redis/redis           |
-| Elasticsearch-Go | Elasticsearch 客户端 | 官方客户端，完整支持ES特性                 | https://github.com/elastic/go-elasticsearch |
-| Amqp091-go       | RabbitMQ 客户端      | RabbitMQ官方推荐，稳定可靠                 | https://github.com/rabbitmq/amqp091-go      |
-| Zap              | 日志库               | 高性能结构化日志，支持多级别和多输出       | https://github.com/uber-go/zap              |
-| Viper            | 配置管理             | 支持多种配置源，动态加载                   | https://github.com/spf13/viper              |
-| Swaggo           | API 文档生成         | 与Go代码集成度高，支持自动生成Swagger文档  | https://github.com/swaggo/swag              |
-| Testify          | 测试框架             | 提供丰富的断言和mock功能                   | https://github.com/stretchr/testify         |
-| Prometheus Client| 监控指标收集         | 行业标准监控解决方案                       | https://github.com/prometheus/client_golang |
-| Casbin           | 权限管理             | 灵活的权限模型，支持各种访问控制策略       | https://github.com/casbin/casbin            |
-| Wire             | 依赖注入工具         | Google开发，编译时依赖注入，避免运行时开销 | https://github.com/google/wire              |
+| 技术              | 说明                 | 选择理由                                      | 官网/仓库                                   |
+| ----------------- | -------------------- | --------------------------------------------- | ------------------------------------------- |
+| Go                | 编程语言             | 高性能、低资源占用、并发友好                  | https://golang.org/                         |
+| Gin               | Web 框架             | 轻量、高性能、生态丰富                        | https://github.com/gin-gonic/gin            |
+| GORM              | ORM 框架             | 功能全面、易用、社区活跃                      | https://gorm.io/                            |
+| JWT-Go            | JWT 认证             | Go 语言标准 JWT 实现，安全可靠                | https://github.com/golang-jwt/jwt           |
+| Go-Redis          | Redis 客户端         | 官方推荐，性能优异                            | https://github.com/go-redis/redis           |
+| Elasticsearch-Go  | Elasticsearch 客户端 | 官方客户端，完整支持 ES 特性                  | https://github.com/elastic/go-elasticsearch |
+| Amqp091-go        | RabbitMQ 客户端      | RabbitMQ 官方推荐，稳定可靠                   | https://github.com/rabbitmq/amqp091-go      |
+| Zap               | 日志库               | 高性能结构化日志，支持多级别和多输出          | https://github.com/uber-go/zap              |
+| Viper             | 配置管理             | 支持多种配置源，动态加载                      | https://github.com/spf13/viper              |
+| Swaggo            | API 文档生成         | 与 Go 代码集成度高，支持自动生成 Swagger 文档 | https://github.com/swaggo/swag              |
+| Testify           | 测试框架             | 提供丰富的断言和 mock 功能                    | https://github.com/stretchr/testify         |
+| Prometheus Client | 监控指标收集         | 行业标准监控解决方案                          | https://github.com/prometheus/client_golang |
+| Casbin            | 权限管理             | 灵活的权限模型，支持各种访问控制策略          | https://github.com/casbin/casbin            |
+| Wire              | 依赖注入工具         | Google 开发，编译时依赖注入，避免运行时开销   | https://github.com/google/wire              |
 
 ### 微服务技术栈
 
-| 技术             | 说明               | 选择理由                                     | 官网/仓库                                    |
-| ---------------- | ------------------ | -------------------------------------------- | -------------------------------------------- |
-| gRPC             | 微服务通信框架     | 高性能、跨语言、使用Protocol Buffers         | https://github.com/grpc/grpc-go              |
-| Protocol Buffers | 数据序列化格式     | 与gRPC完美结合，高效二进制序列化             | https://github.com/protocolbuffers/protobuf  |
-| Consul           | 服务注册与发现     | 轻量级、高可用、服务健康检查                 | https://github.com/hashicorp/consul          |
-| Etcd             | 配置中心           | 高可靠分布式键值存储，支持动态配置管理       | https://github.com/etcd-io/etcd              |
-| OpenTelemetry    | 分布式追踪         | 开放标准，集成监控、日志和追踪               | https://github.com/open-telemetry/opentelemetry-go |
-| Jaeger           | 分布式追踪系统     | 与OpenTelemetry配合，可视化分布式追踪数据    | https://github.com/jaegertracing/jaeger-client-go |
-| Sentinel-Go      | 流量控制与熔断     | 轻量级流量控制、熔断和系统保护库             | https://github.com/alibaba/sentinel-golang   |
+| 技术             | 说明           | 选择理由                                    | 官网/仓库                                          |
+| ---------------- | -------------- | ------------------------------------------- | -------------------------------------------------- |
+| gRPC             | 微服务通信框架 | 高性能、跨语言、使用 Protocol Buffers       | https://github.com/grpc/grpc-go                    |
+| Protocol Buffers | 数据序列化格式 | 与 gRPC 完美结合，高效二进制序列化          | https://github.com/protocolbuffers/protobuf        |
+| Consul           | 服务注册与发现 | 轻量级、高可用、服务健康检查                | https://github.com/hashicorp/consul                |
+| Etcd             | 配置中心       | 高可靠分布式键值存储，支持动态配置管理      | https://github.com/etcd-io/etcd                    |
+| OpenTelemetry    | 分布式追踪     | 开放标准，集成监控、日志和追踪              | https://github.com/open-telemetry/opentelemetry-go |
+| Jaeger           | 分布式追踪系统 | 与 OpenTelemetry 配合，可视化分布式追踪数据 | https://github.com/jaegertracing/jaeger-client-go  |
+| Sentinel-Go      | 流量控制与熔断 | 轻量级流量控制、熔断和系统保护库            | https://github.com/alibaba/sentinel-golang         |
 
 ### 数据库和中间件 (与原项目相同)
 
@@ -257,23 +257,52 @@ mall-go 项目采用微服务架构，将原单体应用拆分为多个独立的
 
 根据 DDD 的思想，我们将系统按照业务领域划分为以下微服务：
 
-| 微服务名称             | 职责描述                                         | 对应原 Java 模块            |
-| ---------------------- | ------------------------------------------------ | --------------------------- |
-| user-service           | 用户服务，负责用户注册、登录、认证等用户相关操作 | mall-security, UMS 相关模块 |
-| product-service        | 商品服务，负责商品 CRUD、分类、品牌管理等        | PMS 相关模块                |
-| order-service          | 订单服务，负责订单创建、支付、退款等             | OMS 相关模块                |
-| cart-service           | 购物车服务，负责购物车商品管理                   | OMS 购物车相关模块          |
-| inventory-service      | 库存服务，负责商品库存管理                       | PMS 库存相关模块            |
-| payment-service        | 支付服务，对接各种支付渠道                       | OMS 支付相关模块            |
-| search-service         | 搜索服务，提供商品搜索能力                       | mall-search                 |
-| promotion-service      | 促销服务，管理优惠券、满减、秒杀等促销活动       | SMS 相关模块                |
-| content-service        | 内容服务，管理首页内容、广告、专题等             | CMS 相关模块                |
-| notification-service   | 通知服务，负责邮件、短信等消息通知               | 新增                        |
-| recommendation-service | 推荐服务，基于 AI 的商品推荐                     | 新增                        |
-| admin-service          | 后台管理服务，提供后台管理 API                   | mall-admin                  |
-| portal-service         | 前台门户服务，提供前台商城 API                   | mall-portal                 |
-| gateway-service        | API 网关，负责请求路由、负载均衡、限流等         | 新增                        |
-| auth-service           | 认证服务，统一认证中心                           | 新增                        |
+| 微服务名称             | 职责描述                                         | 对应原 Java 模块            | 端口号 |
+| ---------------------- | ------------------------------------------------ | --------------------------- | ------ |
+| gateway-service        | API 网关，负责请求路由、负载均衡、限流等         | 新增                        | 8000   |
+| auth-service           | 认证服务，统一认证中心                           | 新增                        | 8010   |
+| user-service           | 用户服务，负责用户注册、登录、认证等用户相关操作 | mall-security, UMS 相关模块 | 8020   |
+| product-service        | 商品服务，负责商品 CRUD、分类、品牌管理等        | PMS 相关模块                | 8030   |
+| order-service          | 订单服务，负责订单创建、支付、退款等             | OMS 相关模块                | 8040   |
+| cart-service           | 购物车服务，负责购物车商品管理                   | OMS 购物车相关模块          | 8050   |
+| inventory-service      | 库存服务，负责商品库存管理                       | PMS 库存相关模块            | 8060   |
+| payment-service        | 支付服务，对接各种支付渠道                       | OMS 支付相关模块            | 8070   |
+| search-service         | 搜索服务，提供商品搜索能力                       | mall-search                 | 8080   |
+| promotion-service      | 促销服务，管理优惠券、满减、秒杀等促销活动       | SMS 相关模块                | 8090   |
+| content-service        | 内容服务，管理首页内容、广告、专题等             | CMS 相关模块                | 8100   |
+| notification-service   | 通知服务，负责邮件、短信等消息通知               | 新增                        | 8110   |
+| recommendation-service | 推荐服务，基于 AI 的商品推荐                     | 新增                        | 8120   |
+| admin-service          | 后台管理服务，提供后台管理 API                   | mall-admin                  | 8200   |
+| portal-service         | 前台门户服务，提供前台商城 API                   | mall-portal                 | 8300   |
+
+### 微服务端口分配规则
+
+- **8000-8009**: 网关和基础服务端口
+- **8010-8199**: 业务微服务端口
+- **8200-8299**: 后台管理相关服务端口
+- **8300-8399**: 前台门户相关服务端口
+
+### gRPC 服务端口分配
+
+每个微服务除了提供 HTTP API 外，还提供 gRPC 服务，gRPC 端口为对应 HTTP 端口 +10000，例如：
+
+| 微服务名称      | HTTP 端口 | gRPC 端口 |
+| --------------- | --------- | --------- |
+| user-service    | 8020      | 18020     |
+| product-service | 8030      | 18030     |
+| order-service   | 8040      | 18040     |
+| ...             | ...       | ...       |
+
+### 监控端口分配
+
+每个微服务的监控指标收集端口为对应 HTTP 端口 +1000，例如：
+
+| 微服务名称      | HTTP 端口 | 监控端口 |
+| --------------- | --------- | -------- |
+| user-service    | 8020      | 9020     |
+| product-service | 8030      | 9030     |
+| order-service   | 8040      | 9040     |
+| ...             | ...       | ...      |
 
 ### 微服务架构图
 
@@ -1787,7 +1816,7 @@ func main() {
 
 	// 其他控制器初始化...
 
-	// 6. 创建Gin引擎
+	// 6. 创建Gin引擟
 	app := gin.Default()
 
 	// 7. 注册中间件
@@ -1901,6 +1930,7 @@ docker-compose -f docker-compose-env.yml up -d
 ```
 
 这将启动以下基础服务：
+
 - MySQL
 - Redis
 - RabbitMQ
@@ -1995,21 +2025,21 @@ metadata:
   name: mall-dev
   labels:
     environment: development
---- 
+---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: mall-test
   labels:
     environment: testing
---- 
+---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: mall-prod
   labels:
     environment: production
---- 
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -2039,7 +2069,7 @@ data:
       host: mysql.mall-infra.svc.cluster.local
       port: 3306
       name: mall
---- 
+---
 # deployments/kubernetes/secrets/product-service-secrets.yaml
 apiVersion: v1
 kind: Secret
@@ -2074,7 +2104,7 @@ spec:
         protocol: HTTP
       hosts:
         - "mall.example.com"
---- 
+---
 # deployments/kubernetes/istio/virtual-service.yaml
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -2150,7 +2180,7 @@ spec:
   storageClassName: standard
   hostPath:
     path: /data/mysql
---- 
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
