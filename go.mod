@@ -3,6 +3,7 @@ module mall-go
 go 1.24
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-contrib/cors v1.7.5
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
@@ -13,6 +14,7 @@ require (
 	github.com/prometheus/client_golang v1.11.1
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/viper v1.20.1
+	github.com/streadway/amqp v1.1.0
 	github.com/stretchr/testify v1.10.0
 	github.com/ulule/limiter/v3 v3.11.2
 	go.etcd.io/etcd/client/v3 v3.5.21
@@ -51,6 +53,8 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.opentelemetry.io/otel/metric v1.29.0 // indirect
+	google.golang.org/grpc v1.67.3
+	google.golang.org/protobuf v1.36.6
 )
 
 require (
@@ -97,7 +101,7 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.21 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
-	go.uber.org/zap v1.17.0 // indirect
+	go.uber.org/zap v1.17.0
 	golang.org/x/arch v0.15.0 // indirect
 	golang.org/x/crypto v0.37.0
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
@@ -106,7 +110,5 @@ require (
 	golang.org/x/text v0.24.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241209162323-e6fa225c2576 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241223144023-3abc09e42ca8 // indirect
-	google.golang.org/grpc v1.67.3 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

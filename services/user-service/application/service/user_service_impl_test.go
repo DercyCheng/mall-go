@@ -194,7 +194,7 @@ func TestUserServiceImpl_Login(t *testing.T) {
 			func(ctx context.Context, updatedUser *model.User) error {
 				// 验证最后登录时间是否已更新 - 使用更可靠的方式
 				assert.NotEqual(t, beforeLoginTime, updatedUser.LastLogin)
-				assert.False(t, updatedUser.LastLogin.IsZero()) // 确保不是零值
+				assert.False(t, updatedUser.LastLogin.IsZero())   // 确保不是零值
 				assert.True(t, time.Now().After(beforeLoginTime)) // 确保当前时间在旧登录时间之后
 				return nil
 			})
@@ -432,12 +432,12 @@ func TestUserServiceImpl_UpdateUser(t *testing.T) {
 		// 准备测试数据
 		userID := "user-123"
 		user := &model.User{
-			ID:        userID,
-			Username:  "testuser",
-			Email:     "old@example.com",
-			NickName:  "Old Name",
-			Phone:     "1234567890",
-			Status:    model.UserStatusActive,
+			ID:       userID,
+			Username: "testuser",
+			Email:    "old@example.com",
+			NickName: "Old Name",
+			Phone:    "1234567890",
+			Status:   model.UserStatusActive,
 		}
 
 		updateReq := dto.UserUpdateRequest{
@@ -488,10 +488,10 @@ func TestUserServiceImpl_UpdateUser(t *testing.T) {
 		// 准备测试数据
 		userID := "user-123"
 		user := &model.User{
-			ID:        userID,
-			Username:  "testuser",
-			Email:     "old@example.com",
-			NickName:  "Old Name",
+			ID:       userID,
+			Username: "testuser",
+			Email:    "old@example.com",
+			NickName: "Old Name",
 		}
 
 		updateReq := dto.UserUpdateRequest{
@@ -515,9 +515,9 @@ func TestUserServiceImpl_UpdateUser(t *testing.T) {
 		// 准备测试数据
 		userID := "user-123"
 		user := &model.User{
-			ID:        userID,
-			Username:  "testuser",
-			Email:     "test@example.com",
+			ID:       userID,
+			Username: "testuser",
+			Email:    "test@example.com",
 		}
 
 		// 使用正确的类型 []*model.Role 而不是 []model.Role
@@ -534,10 +534,10 @@ func TestUserServiceImpl_UpdateUser(t *testing.T) {
 		mockUserRepo.EXPECT().FindByID(gomock.Any(), userID).Return(user, nil)
 		mockUserRepo.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
 		mockRoleRepo.EXPECT().GetUserRoles(gomock.Any(), userID).Return(currentRoles, nil)
-		
+
 		// 移除 role-2
 		mockRoleRepo.EXPECT().RevokeRoleFromUser(gomock.Any(), userID, "role-2").Return(nil)
-		
+
 		// 添加 role-3
 		mockRoleRepo.EXPECT().AssignRoleToUser(gomock.Any(), userID, "role-3").Return(nil)
 
@@ -649,11 +649,11 @@ func TestUserServiceImpl_ChangePassword(t *testing.T) {
 			ID:       userID,
 			Username: "testuser",
 		}
-		
+
 		// 设置旧密码
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("oldpassword"), bcrypt.DefaultCost)
 		user.Password = string(hashedPassword)
-		
+
 		// 旧密码的哈希值，用于验证密码是否被修改
 		oldPasswordHash := user.Password
 
@@ -706,7 +706,7 @@ func TestUserServiceImpl_ChangePassword(t *testing.T) {
 			ID:       userID,
 			Username: "testuser",
 		}
-		
+
 		// 设置旧密码
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("correctoldpassword"), bcrypt.DefaultCost)
 		user.Password = string(hashedPassword)
@@ -735,7 +735,7 @@ func TestUserServiceImpl_ChangePassword(t *testing.T) {
 			ID:       userID,
 			Username: "testuser",
 		}
-		
+
 		// 设置旧密码
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("oldpassword"), bcrypt.DefaultCost)
 		user.Password = string(hashedPassword)
@@ -893,7 +893,7 @@ func TestUserServiceImpl_ListUsers(t *testing.T) {
 		assert.NotNil(t, response)
 		assert.Equal(t, total, response.Total)
 		assert.Len(t, response.List, len(users))
-		
+
 		// 验证返回的用户列表是否正确
 		userDTOs, ok := response.List.([]dto.UserDTO)
 		assert.True(t, ok, "response.List should be of type []dto.UserDTO")
@@ -998,7 +998,7 @@ func TestUserServiceImpl_SearchUsers(t *testing.T) {
 		assert.NotNil(t, response)
 		assert.Equal(t, total, response.Total)
 		assert.Len(t, response.List, len(users))
-		
+
 		// 验证返回的用户列表是否正确
 		userDTOs, ok := response.List.([]dto.UserDTO)
 		assert.True(t, ok, "response.List should be of type []dto.UserDTO")

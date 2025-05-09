@@ -1,0 +1,239 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "mall-go/services/product-service/proto;productpb";
+
+// ProductService handles product-related operations
+service ProductService {
+  // CreateProduct creates a new product
+  rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse) {}
+  
+  // GetProduct retrieves product details
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse) {}
+  
+  // ListProducts retrieves products with optional filters
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse) {}
+  
+  // UpdateProduct updates product information
+  rpc UpdateProduct(UpdateProductRequest) returns (UpdateProductResponse) {}
+  
+  // DeleteProduct removes a product
+  rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse) {}
+  
+  // GetStock retrieves product stock information
+  rpc GetStock(GetStockRequest) returns (GetStockResponse) {}
+  
+  // UpdateStock updates product stock
+  rpc UpdateStock(UpdateStockRequest) returns (UpdateStockResponse) {}
+}
+
+// Money represents a monetary value with currency
+message Money {
+  double amount = 1;
+  string currency = 2;
+}
+
+// Product represents a product entity
+message Product {
+  string id = 1;
+  string name = 2;
+  string subtitle = 3;
+  string brand_id = 4;
+  string brand_name = 5;
+  string category_id = 6;
+  string category_name = 7;
+  string product_sn = 8;
+  Money price = 9;
+  Money original_price = 10;
+  int32 stock = 11;
+  int32 low_stock = 12;
+  int32 unit = 13;
+  string unit_name = 14;
+  double weight = 15;
+  int32 sort = 16;
+  repeated string pic_urls = 17;
+  repeated string album_pics = 18;
+  string main_pic = 19;
+  string detail_title = 20;
+  string detail_desc = 21;
+  string description = 22;
+  string keywords = 23;
+  int32 promotion_type = 24;
+  int32 publish_status = 25;
+  int32 verify_status = 26;
+  int32 sale = 27;
+  int32 gift_point = 28;
+  repeated ProductAttribute attributes = 29;
+  repeated ProductSku skus = 30;
+  string created_at = 31;
+  string updated_at = 32;
+}
+
+// ProductAttribute represents product attributes
+message ProductAttribute {
+  string id = 1;
+  string name = 2;
+  string value = 3;
+  int32 type = 4;
+  int32 sort = 5;
+}
+
+// ProductSku represents a specific product SKU
+message ProductSku {
+  string id = 1;
+  string product_id = 2;
+  string sku_code = 3;
+  Money price = 4;
+  int32 stock = 5;
+  int32 low_stock = 6;
+  string spec_json = 7;
+  string pic = 8;
+  int32 sale = 9;
+  int32 lock_stock = 10;
+  string created_at = 11;
+  string updated_at = 12;
+}
+
+// CreateProductRequest for creating a new product
+message CreateProductRequest {
+  string name = 1;
+  string subtitle = 2;
+  string brand_id = 3;
+  string category_id = 4;
+  string product_sn = 5;
+  double price = 6;
+  double original_price = 7;
+  int32 stock = 8;
+  int32 low_stock = 9;
+  int32 unit = 10;
+  string unit_name = 11;
+  double weight = 12;
+  int32 sort = 13;
+  repeated string pic_urls = 14;
+  repeated string album_pics = 15;
+  string main_pic = 16;
+  string detail_title = 17;
+  string detail_desc = 18;
+  string description = 19;
+  string keywords = 20;
+  int32 promotion_type = 21;
+  int32 publish_status = 22;
+  repeated ProductAttribute attributes = 23;
+  repeated ProductSku skus = 24;
+}
+
+// CreateProductResponse contains the result of product creation
+message CreateProductResponse {
+  bool success = 1;
+  string message = 2;
+  string product_id = 3;
+}
+
+// GetProductRequest for retrieving a product
+message GetProductRequest {
+  string product_id = 1;
+}
+
+// GetProductResponse contains product details
+message GetProductResponse {
+  bool success = 1;
+  string message = 2;
+  Product product = 3;
+}
+
+// ListProductsRequest for retrieving products with filters
+message ListProductsRequest {
+  string category_id = 1;
+  string brand_id = 2;
+  string keyword = 3;
+  double min_price = 4;
+  double max_price = 5;
+  int32 page = 6;
+  int32 size = 7;
+  string sort_by = 8;
+  bool sort_desc = 9;
+  int32 publish_status = 10;
+}
+
+// ListProductsResponse contains list of products
+message ListProductsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Product products = 3;
+  int32 total = 4;
+}
+
+// UpdateProductRequest for updating product information
+message UpdateProductRequest {
+  string product_id = 1;
+  string name = 2;
+  string subtitle = 3;
+  string brand_id = 4;
+  string category_id = 5;
+  string product_sn = 6;
+  double price = 7;
+  double original_price = 8;
+  int32 stock = 9;
+  int32 low_stock = 10;
+  int32 unit = 11;
+  string unit_name = 12;
+  double weight = 13;
+  int32 sort = 14;
+  repeated string pic_urls = 15;
+  repeated string album_pics = 16;
+  string main_pic = 17;
+  string detail_title = 18;
+  string detail_desc = 19;
+  string description = 20;
+  string keywords = 21;
+  int32 promotion_type = 22;
+  int32 publish_status = 23;
+  repeated ProductAttribute attributes = 24;
+  repeated ProductSku skus = 25;
+}
+
+// UpdateProductResponse contains the result of product update
+message UpdateProductResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// DeleteProductRequest for removing a product
+message DeleteProductRequest {
+  string product_id = 1;
+}
+
+// DeleteProductResponse contains the result of product deletion
+message DeleteProductResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// GetStockRequest for retrieving product stock
+message GetStockRequest {
+  string product_id = 1;
+  string sku_id = 2;
+}
+
+// GetStockResponse contains stock information
+message GetStockResponse {
+  bool success = 1;
+  string message = 2;
+  int32 stock = 3;
+  int32 lock_stock = 4;
+}
+
+// UpdateStockRequest for updating product stock
+message UpdateStockRequest {
+  string product_id = 1;
+  string sku_id = 2;
+  int32 stock = 3;
+  int32 lock_stock = 4;
+}
+
+// UpdateStockResponse contains the result of stock update
+message UpdateStockResponse {
+  bool success = 1;
+  string message = 2;
+}

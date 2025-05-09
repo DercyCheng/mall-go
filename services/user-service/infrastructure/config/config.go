@@ -10,6 +10,7 @@ import (
 // Config represents the application configuration
 type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
+	GRPC     GRPCConfig     `mapstructure:"grpc"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Auth     AuthConfig     `mapstructure:"auth"`
 	Registry RegistryConfig `mapstructure:"registry"`
@@ -20,6 +21,15 @@ type Config struct {
 type ServerConfig struct {
 	Port int    `mapstructure:"port"`
 	Mode string `mapstructure:"mode"`
+}
+
+// GRPCConfig represents the gRPC server configuration
+type GRPCConfig struct {
+	Port                 int `mapstructure:"port"`
+	MaxConcurrentStreams int `mapstructure:"max_concurrent_streams"`
+	ConnectionTimeout    int `mapstructure:"connection_timeout"`
+	KeepaliveTime        int `mapstructure:"keepalive_time"`
+	KeepaliveTimeout     int `mapstructure:"keepalive_timeout"`
 }
 
 // DatabaseConfig represents the database configuration

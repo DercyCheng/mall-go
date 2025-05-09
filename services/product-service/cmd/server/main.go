@@ -4,9 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"mall-go/services/product-service/application/service"
-	domainService "mall-go/services/product-service/domain/service"
-	mysqlx "mall-go/services/product-service/infrastructure/persistence/mysql"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,12 +16,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
+	grpcserver "mall-go/services/product-service/api/grpc"
 	"mall-go/services/product-service/api/handler"
 	"mall-go/services/product-service/api/router"
+	"mall-go/services/product-service/application/service"
+	domainService "mall-go/services/product-service/domain/service"
+	mysqlx "mall-go/services/product-service/infrastructure/persistence/mysql"
+	productpb "mall-go/services/product-service/proto"
 )
 
 // 获取服务根目录
@@ -68,6 +73,9 @@ func main() {
 		nil, // TODO: 实现事件发布器
 	)
 
+	// 启动 gRPC 服务器
+	go startGRPCServer(productService)
+
 	// 初始化 HTTP 处理器
 	productHandler := handler.NewProductHandler(productService)
 
@@ -86,7 +94,7 @@ func main() {
 
 	// 优雅关闭服务
 	go func() {
-		logrus.Infof("服务启动，监听端口: %d", viper.GetInt("server.port"))
+		logrus.Infof("HTTP 服务启动，监听端口: %d", viper.GetInt("server.port"))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logrus.Fatalf("服务启动失败: %s", err)
 		}
@@ -106,13 +114,46 @@ func main() {
 	logrus.Info("服务已关闭")
 }
 
+// 启动 gRPC 服务器
+func startGRPCServer(productService *service.ProductService) {
+	// 获取 gRPC 配置
+	grpcPort := viper.GetInt("grpc.port")
+	if grpcPort == 0 {
+		grpcPort = 50052 // 默认端口
+	}
+
+	// 创建监听器
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
+	if err != nil {
+		logrus.Fatalf("gRPC 服务监听失败: %v", err)
+	}
+
+	// 创建 gRPC 服务器
+	grpcServer := grpc.NewServer()
+
+	// 注册反射服务 - 支持像 grpcurl 这样的工具进行服务发现
+	reflection.Register(grpcServer)
+
+	// 创建 gRPC 服务处理器
+	productServer := grpcserver.NewProductServer(productService)
+
+	// 注册服务
+	productpb.RegisterProductServiceServer(grpcServer, productServer)
+
+	// 启动 gRPC 服务器
+	logrus.Infof("gRPC 服务启动，监听端口: %d", grpcPort)
+	if err := grpcServer.Serve(lis); err != nil {
+		logrus.Fatalf("gRPC 服务启动失败: %v", err)
+	}
+}
+
 // 初始化配置
 func initConfig(configFile string) {
 	// 如果配置文件路径是相对路径，则基于服务根目录解析
 	if !filepath.IsAbs(configFile) {
 		configFile = filepath.Join(getServiceRootDir(), configFile)
 	}
-	
+
 	logrus.Infof("加载配置文件: %s", configFile)
 	viper.SetConfigFile(configFile)
 	if err := viper.ReadInConfig(); err != nil {

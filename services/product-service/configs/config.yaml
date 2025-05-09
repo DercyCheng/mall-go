@@ -7,6 +7,19 @@ server:
   # API前缀
   apiPrefix: /api/v1
 
+# gRPC 服务配置
+grpc:
+  # gRPC 服务端口
+  port: 50052
+  # 最大并发流
+  max_concurrent_streams: 1000
+  # 连接超时(秒)
+  connection_timeout: 10
+  # 保活时间(秒)
+  keepalive_time: 60
+  # 保活超时(秒)
+  keepalive_timeout: 20
+
 # 数据库配置
 database:
   host: localhost

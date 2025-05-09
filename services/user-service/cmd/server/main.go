@@ -4,6 +4,22 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/google/uuid"
+	"github.com/hashicorp/consul/api"
+	"github.com/jmoiron/sqlx"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+
+	grpcserver "mall-go/services/user-service/api/grpc"
 	"mall-go/services/user-service/api/handler"
 	"mall-go/services/user-service/api/middleware"
 	"mall-go/services/user-service/api/router"
@@ -12,17 +28,7 @@ import (
 	"mall-go/services/user-service/domain/repository"
 	"mall-go/services/user-service/infrastructure/config"
 	persistence "mall-go/services/user-service/infrastructure/persistence"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/hashicorp/consul/api"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
+	userpb "mall-go/services/user-service/proto"
 )
 
 // UserRepositoryAdapter adapts the persistence implementation to the domain interface
@@ -170,6 +176,9 @@ func main() {
 	userService := service.NewUserService(userRepo, roleRepo, cfg.Auth.JWTSecret, cfg.Auth.GetTokenExpiry())
 	roleService := service.NewRoleService(roleRepo)
 
+	// 启动 gRPC 服务器
+	go startGRPCServer(userService, cfg)
+
 	// 初始化路由处理器
 	userHandler := handler.NewUserHandler(userService, roleService)
 
@@ -193,6 +202,7 @@ func main() {
 
 	// 优雅关闭
 	go func() {
+		log.Printf("HTTP 服务启动，监听端口: %d", cfg.Server.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("监听端口失败: %v", err)
 		}
@@ -212,6 +222,39 @@ func main() {
 	}
 
 	log.Println("服务器已安全关闭")
+}
+
+// startGRPCServer 启动 gRPC 服务器
+func startGRPCServer(userService service.UserService, cfg *config.Config) {
+	// 获取 gRPC 配置
+	grpcPort := cfg.GRPC.Port
+	if grpcPort == 0 {
+		grpcPort = 50053 // 默认端口
+	}
+
+	// 创建监听器
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
+	if err != nil {
+		log.Fatalf("gRPC 服务监听失败: %v", err)
+	}
+
+	// 创建 gRPC 服务器
+	grpcServer := grpc.NewServer()
+
+	// 注册反射服务 - 支持像 grpcurl 这样的工具进行服务发现
+	reflection.Register(grpcServer)
+
+	// 创建 gRPC 服务处理器
+	userServer := grpcserver.NewUserServer(userService)
+
+	// 注册服务
+	userpb.RegisterUserServiceServer(grpcServer, userServer)
+
+	// 启动 gRPC 服务器
+	log.Printf("gRPC 服务启动，监听端口: %d", grpcPort)
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("gRPC 服务启动失败: %v", err)
+	}
 }
 
 // registerService registers the service with Consul

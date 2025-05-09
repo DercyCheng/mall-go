@@ -1,0 +1,259 @@
+syntax = "proto3";
+
+package order;
+
+option go_package = "mall-go/services/order-service/proto;orderpb";
+
+// OrderService handles order-related operations
+service OrderService {
+  // CreateOrder creates a new order
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {}
+  
+  // GetOrder retrieves an order by ID
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse) {}
+  
+  // ListOrders retrieves orders for a user
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse) {}
+  
+  // PayOrder updates the order status to paid
+  rpc PayOrder(PayOrderRequest) returns (PayOrderResponse) {}
+  
+  // ShipOrder updates the order status to shipping
+  rpc ShipOrder(ShipOrderRequest) returns (ShipOrderResponse) {}
+  
+  // ReceiveOrder updates the order status to completed
+  rpc ReceiveOrder(ReceiveOrderRequest) returns (ReceiveOrderResponse) {}
+  
+  // CancelOrder cancels an order
+  rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse) {}
+  
+  // ApplyRefund initiates a refund request
+  rpc ApplyRefund(RefundRequest) returns (RefundResponse) {}
+  
+  // ConfirmRefund confirms a refund
+  rpc ConfirmRefund(ConfirmRefundRequest) returns (ConfirmRefundResponse) {}
+}
+
+// Money represents a monetary value with currency
+message Money {
+  double amount = 1;
+  string currency = 2;
+}
+
+// Address represents a shipping address
+message Address {
+  string province = 1;
+  string city = 2;
+  string district = 3;
+  string detail_address = 4;
+  string post_code = 5;
+  string name = 6;
+  string phone = 7;
+  bool is_default = 8;
+}
+
+// OrderStatus represents the current state of an order
+enum OrderStatus {
+  PENDING = 0;
+  PAID = 1;
+  SHIPPING = 2;
+  COMPLETED = 3;
+  CANCELLED = 4;
+  CLOSED = 5;
+  REFUNDING = 6;
+  REFUNDED = 7;
+}
+
+// PaymentType represents payment methods
+enum PaymentType {
+  ALIPAY = 0;
+  WECHAT = 1;
+  UNIONPAY = 2;
+  CASH = 3;
+  CREDIT = 4;
+}
+
+// OrderItem represents an item within an order
+message OrderItem {
+  string id = 1;
+  string product_id = 2;
+  string product_sn = 3;
+  string product_name = 4;
+  string product_pic = 5;
+  Money product_price = 6;
+  int32 product_quantity = 7;
+  string product_attr = 8;
+  double coupon_amount = 9;
+  double promotion_amount = 10;
+  double real_amount = 11;
+  int32 gift_integration = 12;
+  int32 gift_growth = 13;
+  string product_category_id = 14;
+  string created_at = 15;
+}
+
+// Order represents an order entity
+message Order {
+  string id = 1;
+  string member_id = 2;
+  string order_sn = 3;
+  string member_username = 4;
+  Money total_amount = 5;
+  Money pay_amount = 6;
+  Money freight_amount = 7;
+  Money promotion_amount = 8;
+  Money integration_amount = 9;
+  Money coupon_amount = 10;
+  Money discount_amount = 11;
+  PaymentType pay_type = 12;
+  int32 source_type = 13;
+  OrderStatus status = 14;
+  int32 order_type = 15;
+  string delivery_company = 16;
+  string delivery_sn = 17;
+  int32 auto_confirm_day = 18;
+  int32 integration = 19;
+  int32 growth = 20;
+  string promotion_info = 21;
+  int32 bill_type = 22;
+  string bill_header = 23;
+  string bill_content = 24;
+  string bill_receiver_phone = 25;
+  string bill_receiver_email = 26;
+  string receiver_name = 27;
+  string receiver_phone = 28;
+  string receiver_post_code = 29;
+  string receiver_province = 30;
+  string receiver_city = 31;
+  string receiver_district = 32;
+  string receiver_detail_address = 33;
+  string note = 34;
+  int32 confirm_status = 35;
+  int32 delete_status = 36;
+  int32 use_integration = 37;
+  string payment_time = 38;
+  string delivery_time = 39;
+  string receive_time = 40;
+  string comment_time = 41;
+  string modify_time = 42;
+  repeated OrderItem order_items = 43;
+  string created_at = 44;
+  string updated_at = 45;
+}
+
+// CreateOrderRequest for creating a new order
+message CreateOrderRequest {
+  string member_id = 1;
+  string member_username = 2;
+  Address address = 3;
+  repeated OrderItem order_items = 4;
+  double total_amount = 5;
+  double freight_amount = 6;
+}
+
+// CreateOrderResponse contains the result of order creation
+message CreateOrderResponse {
+  bool success = 1;
+  string message = 2;
+  string order_id = 3;
+  string order_sn = 4;
+}
+
+// GetOrderRequest for retrieving an order
+message GetOrderRequest {
+  string order_id = 1;
+}
+
+// GetOrderResponse contains order details
+message GetOrderResponse {
+  bool success = 1;
+  string message = 2;
+  Order order = 3;
+}
+
+// ListOrdersRequest for retrieving user orders
+message ListOrdersRequest {
+  string member_id = 1;
+  OrderStatus status = 2;
+  int32 page = 3;
+  int32 size = 4;
+}
+
+// ListOrdersResponse contains list of orders
+message ListOrdersResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Order orders = 3;
+  int32 total = 4;
+}
+
+// PayOrderRequest for paying an order
+message PayOrderRequest {
+  string order_id = 1;
+  PaymentType pay_type = 2;
+}
+
+// PayOrderResponse contains the result of payment operation
+message PayOrderResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ShipOrderRequest for shipping an order
+message ShipOrderRequest {
+  string order_id = 1;
+  string delivery_company = 2;
+  string delivery_sn = 3;
+}
+
+// ShipOrderResponse contains the result of shipping operation
+message ShipOrderResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ReceiveOrderRequest for confirming receipt of an order
+message ReceiveOrderRequest {
+  string order_id = 1;
+}
+
+// ReceiveOrderResponse contains the result of receive operation
+message ReceiveOrderResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// CancelOrderRequest for cancelling an order
+message CancelOrderRequest {
+  string order_id = 1;
+  string reason = 2;
+}
+
+// CancelOrderResponse contains the result of cancel operation
+message CancelOrderResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// RefundRequest for initiating a refund
+message RefundRequest {
+  string order_id = 1;
+  string reason = 2;
+}
+
+// RefundResponse contains the result of refund request
+message RefundResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ConfirmRefundRequest for confirming a refund
+message ConfirmRefundRequest {
+  string order_id = 1;
+}
+
+// ConfirmRefundResponse contains the result of refund confirmation
+message ConfirmRefundResponse {
+  bool success = 1;
+  string message = 2;
+}

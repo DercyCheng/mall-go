@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package gateway;
+
+option go_package = "mall-go/services/gateway-service/proto;gatewaypb";
+
+// GatewayService handles API gateway operations
+service GatewayService {
+  // AuthenticateUser validates user credentials
+  rpc AuthenticateUser(AuthRequest) returns (AuthResponse) {}
+  
+  // ValidateToken verifies a JWT token
+  rpc ValidateToken(TokenRequest) returns (TokenResponse) {}
+  
+  // RegisterRoutes registers service routes
+  rpc RegisterRoutes(RegisterRoutesRequest) returns (RegisterRoutesResponse) {}
+  
+  // GetServiceHealth checks service health status
+  rpc GetServiceHealth(HealthRequest) returns (HealthResponse) {}
+  
+  // ForwardRequest forwards a request to the appropriate service
+  rpc ForwardRequest(ForwardRequestRequest) returns (ForwardRequestResponse) {}
+}
+
+// AuthRequest for authenticating a user
+message AuthRequest {
+  string username = 1;
+  string password = 2;
+}
+
+// AuthResponse contains authentication result
+message AuthResponse {
+  bool success = 1;
+  string message = 2;
+  string token = 3;
+  int64 expires_at = 4;
+}
+
+// TokenRequest for validating a token
+message TokenRequest {
+  string token = 1;
+}
+
+// TokenResponse contains token validation result
+message TokenResponse {
+  bool valid = 1;
+  string message = 2;
+  string user_id = 3;
+  map<string, string> claims = 4;
+}
+
+// Route represents a service route
+message Route {
+  string path = 1;
+  string method = 2;
+  string service = 3;
+  string handler = 4;
+  bool auth_required = 5;
+  repeated string allowed_roles = 6;
+}
+
+// RegisterRoutesRequest for registering service routes
+message RegisterRoutesRequest {
+  string service_name = 1;
+  string service_host = 2;
+  int32 service_port = 3;
+  repeated Route routes = 4;
+}
+
+// RegisterRoutesResponse contains route registration result
+message RegisterRoutesResponse {
+  bool success = 1;
+  string message = 2;
+  int32 routes_count = 3;
+}
+
+// HealthRequest for checking service health
+message HealthRequest {
+  string service_name = 1;
+}
+
+// ServiceStatus represents the health status of a service
+message ServiceStatus {
+  string service_name = 1;
+  string status = 2;  // "UP", "DOWN", "DEGRADED"
+  int64 last_checked = 3;
+  map<string, string> details = 4;
+}
+
+// HealthResponse contains service health status
+message HealthResponse {
+  bool success = 1;
+  string message = 2;
+  repeated ServiceStatus services = 3;
+}
+
+// HeaderValue represents HTTP header values
+message HeaderValue {
+  repeated string values = 1;
+}
+
+// ForwardRequestRequest for forwarding requests to services
+message ForwardRequestRequest {
+  string path = 1;
+  string method = 2;
+  bytes body = 3;
+  map<string, HeaderValue> headers = 4;
+  map<string, string> query_params = 5;
+  string user_id = 6;
+}
+
+// ForwardRequestResponse contains forwarded request result
+message ForwardRequestResponse {
+  int32 status_code = 1;
+  bytes body = 2;
+  map<string, HeaderValue> headers = 3;
+  string error = 4;
+}
