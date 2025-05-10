@@ -1,0 +1,203 @@
+syntax = "proto3";
+
+package cart;
+
+option go_package = "mall-go/services/cart-service/proto;cartpb";
+
+// CartService handles cart-related operations
+service CartService {
+  // AddItem adds a new item to the cart
+  rpc AddItem(AddItemRequest) returns (CartItemResponse) {}
+
+  // GetCart retrieves the user's cart
+  rpc GetCart(GetCartRequest) returns (GetCartResponse) {}
+
+  // UpdateItemQuantity updates the quantity of a cart item
+  rpc UpdateItemQuantity(UpdateItemQuantityRequest) returns (GenericResponse) {}
+
+  // DeleteItem deletes a cart item
+  rpc DeleteItem(DeleteItemRequest) returns (GenericResponse) {}
+
+  // ClearCart clears all items from the user's cart
+  rpc ClearCart(ClearCartRequest) returns (GenericResponse) {}
+
+  // UpdateCheckStatus updates the check status of a cart item
+  rpc UpdateCheckStatus(UpdateCheckStatusRequest) returns (GenericResponse) {}
+
+  // UpdateAllCheckStatus updates the check status of all cart items for a user
+  rpc UpdateAllCheckStatus(UpdateAllCheckStatusRequest)
+      returns (GenericResponse) {}
+
+  // GetCartCount returns the number of items in the user's cart
+  rpc GetCartCount(GetCartCountRequest) returns (CartCountResponse) {}
+
+  // GetCartTotalAmount returns the total amount for checked items in the user's
+  // cart
+  rpc GetCartTotalAmount(GetCartTotalAmountRequest)
+      returns (CartTotalAmountResponse) {}
+
+  // GetCheckedItems returns all checked items in the user's cart
+  rpc GetCheckedItems(GetCheckedItemsRequest)
+      returns (GetCheckedItemsResponse) {}
+
+  // DeleteCheckedItems deletes all checked items from the user's cart
+  rpc DeleteCheckedItems(DeleteCheckedItemsRequest) returns (GenericResponse) {}
+
+  // ApplyPromotion applies a promotion to cart items
+  rpc ApplyPromotion(ApplyPromotionRequest) returns (GenericResponse) {}
+
+  // ApplyCoupon applies a coupon to cart items
+  rpc ApplyCoupon(ApplyCouponRequest) returns (GenericResponse) {}
+}
+
+// CartItem represents a cart item
+message CartItem {
+  string id = 1;
+  string product_id = 2;
+  string product_sku_id = 3;
+  string product_name = 4;
+  string product_sub_title = 5;
+  string product_pic = 6;
+  double product_price = 7;
+  int32 product_quantity = 8;
+  string product_sku_code = 9;
+  string product_category_id = 10;
+  string product_brand = 11;
+  string product_sn = 12;
+  string product_attr = 13;
+  string promotion_info = 14;
+  double promotion_amount = 15;
+  double coupon_amount = 16;
+  double real_amount = 17;
+  bool check_status = 18;
+}
+
+// CartSummary represents a cart summary
+message CartSummary {
+  double total_amount = 1;
+  double promotion_amount = 2;
+  double coupon_amount = 3;
+  double real_amount = 4;
+  int32 item_count = 5;
+}
+
+// AddItemRequest represents a request to add an item to the cart
+message AddItemRequest {
+  string user_id = 1;
+  string product_id = 2;
+  string product_sku_id = 3;
+  string product_name = 4;
+  string product_sub_title = 5;
+  string product_pic = 6;
+  double product_price = 7;
+  int32 quantity = 8;
+  string product_sku_code = 9;
+  string product_attr = 10;
+}
+
+// CartItemResponse represents a response containing a cart item
+message CartItemResponse {
+  bool success = 1;
+  string message = 2;
+  CartItem item = 3;
+}
+
+// GetCartRequest represents a request to retrieve the user's cart
+message GetCartRequest { string user_id = 1; }
+
+// GetCartResponse represents a response containing cart items
+message GetCartResponse {
+  bool success = 1;
+  string message = 2;
+  repeated CartItem items = 3;
+  CartSummary summary = 4;
+}
+
+// UpdateItemQuantityRequest represents a request to update the quantity of a
+// cart item
+message UpdateItemQuantityRequest {
+  string user_id = 1;
+  string id = 2;
+  int32 quantity = 3;
+}
+
+// DeleteItemRequest represents a request to delete a cart item
+message DeleteItemRequest {
+  string user_id = 1;
+  string id = 2;
+}
+
+// ClearCartRequest represents a request to clear all items from the user's cart
+message ClearCartRequest { string user_id = 1; }
+
+// UpdateCheckStatusRequest represents a request to update the check status of a
+// cart item
+message UpdateCheckStatusRequest {
+  string user_id = 1;
+  string id = 2;
+  bool status = 3;
+}
+
+// UpdateAllCheckStatusRequest represents a request to update the check status
+// of all cart items for a user
+message UpdateAllCheckStatusRequest {
+  string user_id = 1;
+  bool status = 2;
+}
+
+// GenericResponse represents a generic response
+message GenericResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// GetCartCountRequest represents a request to get the cart count for a user
+message GetCartCountRequest { string user_id = 1; }
+
+// CartCountResponse represents a response containing the cart count
+message CartCountResponse {
+  bool success = 1;
+  string message = 2;
+  int32 count = 3;
+}
+
+// GetCartTotalAmountRequest represents a request to get the cart total amount
+// for a user
+message GetCartTotalAmountRequest { string user_id = 1; }
+
+// CartTotalAmountResponse represents a response containing the cart total
+// amount
+message CartTotalAmountResponse {
+  bool success = 1;
+  string message = 2;
+  double total_amount = 3;
+}
+
+// GetCheckedItemsRequest represents a request to get checked items for a user
+message GetCheckedItemsRequest { string user_id = 1; }
+
+// GetCheckedItemsResponse represents a response containing checked cart items
+message GetCheckedItemsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated CartItem items = 3;
+}
+
+// DeleteCheckedItemsRequest represents a request to delete checked items for a
+// user
+message DeleteCheckedItemsRequest { string user_id = 1; }
+
+// ApplyPromotionRequest represents a request to apply a promotion to cart items
+message ApplyPromotionRequest {
+  string user_id = 1;
+  repeated string item_ids = 2;
+  string promotion_info = 3;
+  double promotion_amount = 4;
+}
+
+// ApplyCouponRequest represents a request to apply a coupon to cart items
+message ApplyCouponRequest {
+  string user_id = 1;
+  repeated string item_ids = 2;
+  double coupon_amount = 3;
+}

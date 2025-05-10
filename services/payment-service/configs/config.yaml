@@ -1,0 +1,73 @@
+server:
+  http_port: 8070
+  grpc_port: 18070
+  mode: debug # debug, release, test
+  timeout: 30 # seconds
+
+database:
+  driver: mysql
+  host: localhost
+  port: 3306
+  username: root
+  password: root
+  dbname: mall_go
+  max_open_conns: 100
+  max_idle_conns: 10
+  conn_max_lifetime: 3600 # seconds
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 0
+  pool_size: 100
+  min_idle_conns: 10
+
+registry:
+  type: consul
+  address: localhost:8500
+  service_name: payment-service
+  tags:
+    - payment
+    - mall
+
+rabbitmq:
+  host: localhost
+  port: 5672
+  username: guest
+  password: guest
+  vhost: /
+
+services:
+  order:
+    host: localhost
+    port: 18050
+    timeout: 5 # seconds
+
+logging:
+  level: info # debug, info, warn, error
+  format: json # json, text
+  output: stdout # stdout, file
+  file_path: ./logs/payment-service.log
+
+tracing:
+  enabled: true
+  type: jaeger
+  service_name: payment-service
+  endpoint: http://localhost:14268/api/traces
+
+payment:
+  providers:
+    - name: alipay
+      app_id: "2021000000000000"
+      merchant_private_key: "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC..."
+      alipay_public_key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA..."
+      notify_url: "http://localhost:8070/api/v1/payments/alipay/callback"
+      return_url: "http://localhost:3000/payment-result"
+      sandbox: true
+    - name: wxpay
+      app_id: "wx0000000000000000"
+      mch_id: "1900000000"
+      api_key: "abcdefghijklmnopqrstuvwxyz123456"
+      notify_url: "http://localhost:8070/api/v1/payments/wxpay/callback"
+      sandbox: true

@@ -43,15 +43,128 @@ func (p *ServiceProxy) ProxyUserService(c *gin.Context) {
 	p.proxyRequest(c, p.config.Services.User.Name, p.config.Services.User.GetTimeout())
 }
 
+// ProxyProductService handles routing requests to the product service
+func (p *ServiceProxy) ProxyProductService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Product.Name, p.config.Services.Product.GetTimeout())
+}
+
+// ProxyOrderService handles routing requests to the order service
+func (p *ServiceProxy) ProxyOrderService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Order.Name, p.config.Services.Order.GetTimeout())
+}
+
+// ProxyCartService handles routing requests to the cart service
+func (p *ServiceProxy) ProxyCartService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Cart.Name, p.config.Services.Cart.GetTimeout())
+}
+
+// ProxyInventoryService handles routing requests to the inventory service
+func (p *ServiceProxy) ProxyInventoryService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Inventory.Name, p.config.Services.Inventory.GetTimeout())
+}
+
+// ProxyPaymentService handles routing requests to the payment service
+func (p *ServiceProxy) ProxyPaymentService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Payment.Name, p.config.Services.Payment.GetTimeout())
+}
+
+// ProxySearchService handles routing requests to the search service
+func (p *ServiceProxy) ProxySearchService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Search.Name, p.config.Services.Search.GetTimeout())
+}
+
+// ProxyPromotionService handles routing requests to the promotion service
+func (p *ServiceProxy) ProxyPromotionService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Promotion.Name, p.config.Services.Promotion.GetTimeout())
+}
+
+// ProxyContentService handles routing requests to the content service
+func (p *ServiceProxy) ProxyContentService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Content.Name, p.config.Services.Content.GetTimeout())
+}
+
+// ProxyNotificationService handles routing requests to the notification service
+func (p *ServiceProxy) ProxyNotificationService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Notification.Name, p.config.Services.Notification.GetTimeout())
+}
+
+// ProxyRecommendationService handles routing requests to the recommendation service
+func (p *ServiceProxy) ProxyRecommendationService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Recommendation.Name, p.config.Services.Recommendation.GetTimeout())
+}
+
+// ProxyAdminService handles routing requests to the admin service
+func (p *ServiceProxy) ProxyAdminService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Admin.Name, p.config.Services.Admin.GetTimeout())
+}
+
+// ProxyPortalService handles routing requests to the portal service
+func (p *ServiceProxy) ProxyPortalService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Portal.Name, p.config.Services.Portal.GetTimeout())
+}
+
+// ProxyAuthService handles routing requests to the auth service
+func (p *ServiceProxy) ProxyAuthService(c *gin.Context) {
+	p.proxyRequest(c, p.config.Services.Auth.Name, p.config.Services.Auth.GetTimeout())
+}
+
 // RegisterRoutes registers all proxy routes
 func (p *ServiceProxy) RegisterRoutes(r *gin.Engine) {
 	// User service routes
 	userRoutes := r.Group("/api/user")
 	userRoutes.Any("/*path", p.ProxyUserService)
 
-	// Add more service routes as they are implemented
-	// productRoutes := r.Group("/api/product")
-	// productRoutes.Any("/*path", p.ProxyProductService)
+	// Product service routes
+	productRoutes := r.Group("/api/product")
+	productRoutes.Any("/*path", p.ProxyProductService)
+	
+	// Order service routes
+	orderRoutes := r.Group("/api/order")
+	orderRoutes.Any("/*path", p.ProxyOrderService)
+	
+	// Cart service routes
+	cartRoutes := r.Group("/api/cart")
+	cartRoutes.Any("/*path", p.ProxyCartService)
+	
+	// Inventory service routes
+	inventoryRoutes := r.Group("/api/inventory")
+	inventoryRoutes.Any("/*path", p.ProxyInventoryService)
+	
+	// Payment service routes
+	paymentRoutes := r.Group("/api/payment")
+	paymentRoutes.Any("/*path", p.ProxyPaymentService)
+	
+	// Search service routes
+	searchRoutes := r.Group("/api/search")
+	searchRoutes.Any("/*path", p.ProxySearchService)
+	
+	// Promotion service routes
+	promotionRoutes := r.Group("/api/promotion")
+	promotionRoutes.Any("/*path", p.ProxyPromotionService)
+	
+	// Content service routes
+	contentRoutes := r.Group("/api/content")
+	contentRoutes.Any("/*path", p.ProxyContentService)
+	
+	// Notification service routes
+	notificationRoutes := r.Group("/api/notification")
+	notificationRoutes.Any("/*path", p.ProxyNotificationService)
+	
+	// Recommendation service routes
+	recommendationRoutes := r.Group("/api/recommendation")
+	recommendationRoutes.Any("/*path", p.ProxyRecommendationService)
+	
+	// Admin service routes
+	adminRoutes := r.Group("/api/admin")
+	adminRoutes.Any("/*path", p.ProxyAdminService)
+	
+	// Portal service routes
+	portalRoutes := r.Group("/api/portal")
+	portalRoutes.Any("/*path", p.ProxyPortalService)
+	
+	// Auth service routes
+	authRoutes := r.Group("/api/auth")
+	authRoutes.Any("/*path", p.ProxyAuthService)
 
 	// Add a health check endpoint
 	r.GET("/health", func(c *gin.Context) {

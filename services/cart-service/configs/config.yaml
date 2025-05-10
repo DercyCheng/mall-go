@@ -1,14 +1,8 @@
 server:
-  http_port: 8020
-  grpc_port: 18020
+  http_port: 8040
+  grpc_port: 18040
   mode: debug # debug, release, test
   timeout: 30 # seconds
-
-grpc:
-  max_concurrent_streams: 1000
-  connection_timeout: 10
-  keepalive_time: 60
-  keepalive_timeout: 20
 
 database:
   driver: mysql
@@ -17,8 +11,8 @@ database:
   username: root
   password: root
   dbname: mall_go
-  max_idle_conns: 10
   max_open_conns: 100
+  max_idle_conns: 10
   conn_max_lifetime: 3600 # seconds
 
 redis:
@@ -29,26 +23,41 @@ redis:
   pool_size: 100
   min_idle_conns: 10
 
-auth:
-  jwt_secret: 5gKYk2VZ4fW3bH6jPt8vNxrJqSaL1cEm
-  token_expiry: 86400 # seconds (24 hours)
-
 registry:
   type: consul
   address: localhost:8500
-  service_name: user-service
+  service_name: cart-service
   tags:
-    - user
-    - api
+    - cart
+    - mall
+
+auth:
+  service_host: localhost
+  service_port: 8010
+  timeout: 5 # seconds
+
+services:
+  product:
+    host: localhost
+    port: 18030
+    timeout: 5 # seconds
+  inventory:
+    host: localhost
+    port: 18060
+    timeout: 5 # seconds
+  promotion:
+    host: localhost
+    port: 18070
+    timeout: 5 # seconds
 
 logging:
   level: info # debug, info, warn, error
   format: json # json, text
   output: stdout # stdout, file
-  file_path: ./logs/user-service.log
+  file_path: ./logs/cart-service.log
 
 tracing:
   enabled: true
   type: jaeger
-  service_name: user-service
+  service_name: cart-service
   endpoint: http://localhost:14268/api/traces

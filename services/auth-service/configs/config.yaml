@@ -1,14 +1,13 @@
 server:
-  http_port: 8020
-  grpc_port: 18020
+  http_port: 8010
+  grpc_port: 18010
   mode: debug # debug, release, test
   timeout: 30 # seconds
 
-grpc:
-  max_concurrent_streams: 1000
-  connection_timeout: 10
-  keepalive_time: 60
-  keepalive_timeout: 20
+auth:
+  jwt_secret: 5gKYk2VZ4fW3bH6jPt8vNxrJqSaL1cEm
+  token_expiry: 86400 # seconds (24 hours)
+  refresh_token_expiry: 604800 # seconds (7 days)
 
 database:
   driver: mysql
@@ -17,8 +16,8 @@ database:
   username: root
   password: root
   dbname: mall_go
-  max_idle_conns: 10
   max_open_conns: 100
+  max_idle_conns: 10
   conn_max_lifetime: 3600 # seconds
 
 redis:
@@ -29,26 +28,22 @@ redis:
   pool_size: 100
   min_idle_conns: 10
 
-auth:
-  jwt_secret: 5gKYk2VZ4fW3bH6jPt8vNxrJqSaL1cEm
-  token_expiry: 86400 # seconds (24 hours)
-
 registry:
   type: consul
   address: localhost:8500
-  service_name: user-service
+  service_name: auth-service
   tags:
-    - user
-    - api
+    - auth
+    - security
 
 logging:
   level: info # debug, info, warn, error
   format: json # json, text
   output: stdout # stdout, file
-  file_path: ./logs/user-service.log
+  file_path: ./logs/auth-service.log
 
 tracing:
   enabled: true
   type: jaeger
-  service_name: user-service
+  service_name: auth-service
   endpoint: http://localhost:14268/api/traces

@@ -1,0 +1,251 @@
+syntax = "proto3";
+
+package payment;
+
+option go_package = "mall-go/services/payment-service/proto/paymentpb";
+
+service PaymentService {
+  // CreatePayment creates a new payment
+  rpc CreatePayment(CreatePaymentRequest) returns (PaymentResponse);
+
+  // GetPayment retrieves a payment by ID
+  rpc GetPayment(GetPaymentRequest) returns (PaymentResponse);
+
+  // GetPaymentByOrderID retrieves a payment by order ID
+  rpc GetPaymentByOrderID(GetPaymentByOrderIDRequest) returns (PaymentResponse);
+
+  // ListPayments lists payments with pagination
+  rpc ListPayments(ListPaymentsRequest) returns (PaymentsResponse);
+
+  // UpdatePaymentStatus updates a payment's status
+  rpc UpdatePaymentStatus(UpdatePaymentStatusRequest) returns (PaymentResponse);
+
+  // QueryPaymentStatus queries a payment's status from the payment provider
+  rpc QueryPaymentStatus(QueryPaymentStatusRequest) returns (PaymentResponse);
+
+  // ProcessPaymentCallback processes a payment callback from a payment provider
+  rpc ProcessPaymentCallback(PaymentCallbackRequest)
+      returns (PaymentCallbackResponse);
+
+  // ListPaymentMethods lists all available payment methods
+  rpc ListPaymentMethods(ListPaymentMethodsRequest)
+      returns (PaymentMethodsResponse);
+}
+
+service RefundService {
+  // CreateRefund creates a new refund
+  rpc CreateRefund(CreateRefundRequest) returns (RefundResponse);
+
+  // GetRefund retrieves a refund by ID
+  rpc GetRefund(GetRefundRequest) returns (RefundResponse);
+
+  // GetRefundsByPaymentID retrieves refunds by payment ID
+  rpc GetRefundsByPaymentID(GetRefundsByPaymentIDRequest)
+      returns (RefundsResponse);
+
+  // GetRefundsByOrderID retrieves refunds by order ID
+  rpc GetRefundsByOrderIDRequest(GetRefundsByOrderIDRequest)
+      returns (RefundsResponse);
+
+  // ListRefunds lists refunds with pagination
+  rpc ListRefunds(ListRefundsRequest) returns (RefundsResponse);
+
+  // UpdateRefundStatus updates a refund's status
+  rpc UpdateRefundStatus(UpdateRefundStatusRequest) returns (RefundResponse);
+
+  // QueryRefundStatus queries a refund's status from the payment provider
+  rpc QueryRefundStatus(QueryRefundStatusRequest) returns (RefundResponse);
+
+  // ProcessRefundCallback processes a refund callback from a payment provider
+  rpc ProcessRefundCallback(RefundCallbackRequest)
+      returns (PaymentCallbackResponse);
+}
+
+// Common messages
+message Payment {
+  string id = 1;
+  string order_id = 2;
+  string transaction_id = 3;
+  string user_id = 4;
+  double amount = 5;
+  string currency = 6;
+  string payment_method = 7;
+  string payment_provider = 8;
+  string status = 9;
+  string payment_time = 10;
+  string expire_time = 11;
+  string callback_time = 12;
+  string success_time = 13;
+  string error_msg = 14;
+  string error_code = 15;
+  string client_ip = 16;
+  string payment_url = 17;
+  string payment_data = 18;
+  string created_at = 19;
+  string updated_at = 20;
+}
+
+message Refund {
+  string id = 1;
+  string payment_id = 2;
+  string order_id = 3;
+  string user_id = 4;
+  double refund_amount = 5;
+  string refund_reason = 6;
+  string status = 7;
+  string transaction_id = 8;
+  string operator_id = 9;
+  string operator_name = 10;
+  string refund_time = 11;
+  string success_time = 12;
+  string error_msg = 13;
+  string error_code = 14;
+  string payment_provider = 15;
+  string refund_data = 16;
+  string created_at = 17;
+  string updated_at = 18;
+}
+
+message PaymentMethod {
+  string code = 1;
+  string name = 2;
+  string icon = 3;
+  string description = 4;
+  bool is_enabled = 5;
+}
+
+// Generic response
+message GenericResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Payment service requests and responses
+message CreatePaymentRequest {
+  string order_id = 1;
+  string user_id = 2;
+  double amount = 3;
+  string currency = 4;
+  string payment_method = 5;
+  string payment_provider = 6;
+  string client_ip = 7;
+  int32 expire_minutes = 8;
+}
+
+message GetPaymentRequest { string id = 1; }
+
+message GetPaymentByOrderIDRequest { string order_id = 1; }
+
+message ListPaymentsRequest {
+  string user_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string status = 4;
+  string start_date = 5;
+  string end_date = 6;
+}
+
+message PaymentResponse {
+  bool success = 1;
+  string message = 2;
+  Payment payment = 3;
+}
+
+message PaymentsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Payment payments = 3;
+  int32 total = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+message UpdatePaymentStatusRequest {
+  string id = 1;
+  string status = 2;
+  string transaction_id = 3;
+  string error_code = 4;
+  string error_msg = 5;
+}
+
+message QueryPaymentStatusRequest {
+  string id = 1;
+  string order_id = 2;
+}
+
+message PaymentCallbackRequest {
+  string payment_provider = 1;
+  string raw_data = 2;
+  map<string, string> parameters = 3;
+}
+
+message PaymentCallbackResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ListPaymentMethodsRequest {}
+
+message PaymentMethodsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated PaymentMethod methods = 3;
+}
+
+// Refund service requests and responses
+message CreateRefundRequest {
+  string payment_id = 1;
+  string order_id = 2;
+  string user_id = 3;
+  double refund_amount = 4;
+  string refund_reason = 5;
+  string payment_provider = 6;
+  string operator_id = 7;
+  string operator_name = 8;
+}
+
+message GetRefundRequest { string id = 1; }
+
+message GetRefundsByPaymentIDRequest { string payment_id = 1; }
+
+message GetRefundsByOrderIDRequest { string order_id = 1; }
+
+message ListRefundsRequest {
+  string user_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string status = 4;
+  string start_date = 5;
+  string end_date = 6;
+}
+
+message RefundResponse {
+  bool success = 1;
+  string message = 2;
+  Refund refund = 3;
+}
+
+message RefundsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Refund refunds = 3;
+  int32 total = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+message UpdateRefundStatusRequest {
+  string id = 1;
+  string status = 2;
+  string transaction_id = 3;
+  string error_code = 4;
+  string error_msg = 5;
+}
+
+message QueryRefundStatusRequest { string id = 1; }
+
+message RefundCallbackRequest {
+  string payment_provider = 1;
+  string raw_data = 2;
+  map<string, string> parameters = 3;
+}

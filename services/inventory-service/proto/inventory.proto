@@ -1,0 +1,348 @@
+syntax = "proto3";
+
+package inventory;
+
+option go_package = "mall-go/services/inventory-service/proto;inventorypb";
+
+// InventoryService handles inventory-related operations
+service InventoryService {
+  // CreateInventory creates a new inventory item
+  rpc CreateInventory(CreateInventoryRequest) returns (InventoryResponse) {}
+
+  // GetInventory retrieves an inventory item by ID
+  rpc GetInventory(GetInventoryRequest) returns (InventoryResponse) {}
+
+  // GetInventoryByProduct retrieves an inventory item by product ID and SKU ID
+  rpc GetInventoryByProduct(GetInventoryByProductRequest)
+      returns (InventoryResponse) {}
+
+  // GetInventoriesByProductID retrieves all inventory items for a product
+  rpc GetInventoriesByProductID(GetInventoriesByProductIDRequest)
+      returns (InventoriesResponse) {}
+
+  // GetInventoriesByWarehouseID retrieves all inventory items in a warehouse
+  rpc GetInventoriesByWarehouseID(GetInventoriesByWarehouseIDRequest)
+      returns (PagedInventoriesResponse) {}
+
+  // ListInventories lists all inventory items with pagination
+  rpc ListInventories(ListInventoriesRequest)
+      returns (PagedInventoriesResponse) {}
+
+  // AddStock adds stock to an inventory item
+  rpc AddStock(AddStockRequest) returns (GenericResponse) {}
+
+  // RemoveStock removes stock from an inventory item
+  rpc RemoveStock(RemoveStockRequest) returns (GenericResponse) {}
+
+  // LockStock locks stock for a pending order
+  rpc LockStock(LockStockRequest) returns (GenericResponse) {}
+
+  // UnlockStock unlocks previously locked stock
+  rpc UnlockStock(UnlockStockRequest) returns (GenericResponse) {}
+
+  // ConfirmLock confirms a locked stock (e.g., when order is paid)
+  rpc ConfirmLock(ConfirmLockRequest) returns (GenericResponse) {}
+
+  // SetInventoryStatus sets the inventory status
+  rpc SetInventoryStatus(SetInventoryStatusRequest) returns (GenericResponse) {}
+
+  // GetInventoryHistory retrieves history records for an inventory item
+  rpc GetInventoryHistory(GetInventoryHistoryRequest)
+      returns (InventoryHistoryResponse) {}
+
+  // CheckStock checks if stock is available for a product
+  rpc CheckStock(CheckStockRequest) returns (CheckStockResponse) {}
+}
+
+// WarehouseService handles warehouse-related operations
+service WarehouseService {
+  // CreateWarehouse creates a new warehouse
+  rpc CreateWarehouse(CreateWarehouseRequest) returns (WarehouseResponse) {}
+
+  // GetWarehouse retrieves a warehouse by ID
+  rpc GetWarehouse(GetWarehouseRequest) returns (WarehouseResponse) {}
+
+  // GetWarehouseByCode retrieves a warehouse by code
+  rpc GetWarehouseByCode(GetWarehouseByCodeRequest)
+      returns (WarehouseResponse) {}
+
+  // GetDefaultWarehouse retrieves the default warehouse
+  rpc GetDefaultWarehouse(GetDefaultWarehouseRequest)
+      returns (WarehouseResponse) {}
+
+  // UpdateWarehouse updates an existing warehouse
+  rpc UpdateWarehouse(UpdateWarehouseRequest) returns (GenericResponse) {}
+
+  // DeleteWarehouse deletes a warehouse
+  rpc DeleteWarehouse(DeleteWarehouseRequest) returns (GenericResponse) {}
+
+  // ListWarehouses lists all warehouses
+  rpc ListWarehouses(ListWarehousesRequest) returns (ListWarehousesResponse) {}
+
+  // SetDefaultWarehouse sets a warehouse as the default
+  rpc SetDefaultWarehouse(SetDefaultWarehouseRequest)
+      returns (GenericResponse) {}
+
+  // EnableWarehouse enables a warehouse
+  rpc EnableWarehouse(EnableWarehouseRequest) returns (GenericResponse) {}
+
+  // DisableWarehouse disables a warehouse
+  rpc DisableWarehouse(DisableWarehouseRequest) returns (GenericResponse) {}
+}
+
+// InventoryItem represents an inventory item
+message InventoryItem {
+  string id = 1;
+  string product_id = 2;
+  string sku_id = 3;
+  string sku_code = 4;
+  string warehouse_id = 5;
+  int32 quantity = 6;
+  int32 locked_count = 7;
+  int32 available_qty = 8;
+  string status = 9; // "normal", "locked", "sold", "defective"
+}
+
+// Warehouse represents a warehouse
+message Warehouse {
+  string id = 1;
+  string name = 2;
+  string code = 3;
+  string address = 4;
+  string contact_name = 5;
+  string contact_phone = 6;
+  int32 status = 7; // 0: disabled, 1: enabled
+  bool is_default = 8;
+}
+
+// InventoryHistory represents an inventory history record
+message InventoryHistory {
+  string id = 1;
+  string inventory_id = 2;
+  string product_id = 3;
+  string sku_id = 4;
+  string warehouse_id = 5;
+  string operation_type = 6; // "add", "remove", "lock", "unlock", "confirm"
+  int32 quantity = 7;
+  int32 before_qty = 8;
+  int32 after_qty = 9;
+  string operator = 10;
+  string order_id = 11;
+  string reason = 12;
+  string created_at = 13;
+}
+
+// CreateInventoryRequest represents a request to create an inventory item
+message CreateInventoryRequest {
+  string product_id = 1;
+  string sku_id = 2;
+  string sku_code = 3;
+  string warehouse_id = 4;
+  int32 quantity = 5;
+}
+
+// GetInventoryRequest represents a request to retrieve an inventory item
+message GetInventoryRequest { string id = 1; }
+
+// GetInventoryByProductRequest represents a request to retrieve an inventory
+// item by product
+message GetInventoryByProductRequest {
+  string product_id = 1;
+  string sku_id = 2;
+}
+
+// GetInventoriesByProductIDRequest represents a request to retrieve inventory
+// items for a product
+message GetInventoriesByProductIDRequest { string product_id = 1; }
+
+// GetInventoriesByWarehouseIDRequest represents a request to retrieve inventory
+// items in a warehouse
+message GetInventoriesByWarehouseIDRequest {
+  string warehouse_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+// ListInventoriesRequest represents a request to list all inventory items
+message ListInventoriesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+// InventoryResponse represents a response containing an inventory item
+message InventoryResponse {
+  bool success = 1;
+  string message = 2;
+  InventoryItem inventory = 3;
+}
+
+// InventoriesResponse represents a response containing inventory items
+message InventoriesResponse {
+  bool success = 1;
+  string message = 2;
+  repeated InventoryItem items = 3;
+}
+
+// PagedInventoriesResponse represents a paginated response containing inventory
+// items
+message PagedInventoriesResponse {
+  bool success = 1;
+  string message = 2;
+  repeated InventoryItem items = 3;
+  int32 total = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+// AddStockRequest represents a request to add stock to an inventory item
+message AddStockRequest {
+  string id = 1;
+  int32 quantity = 2;
+  string reason = 3;
+  string operator_id = 4;
+}
+
+// RemoveStockRequest represents a request to remove stock from an inventory
+// item
+message RemoveStockRequest {
+  string id = 1;
+  int32 quantity = 2;
+  string reason = 3;
+  string operator_id = 4;
+}
+
+// LockStockRequest represents a request to lock stock for an order
+message LockStockRequest {
+  string id = 1;
+  int32 quantity = 2;
+  string order_id = 3;
+  string operator_id = 4;
+}
+
+// UnlockStockRequest represents a request to unlock previously locked stock
+message UnlockStockRequest {
+  string id = 1;
+  int32 quantity = 2;
+  string order_id = 3;
+  string reason = 4;
+  string operator_id = 5;
+}
+
+// ConfirmLockRequest represents a request to confirm a locked stock
+message ConfirmLockRequest {
+  string id = 1;
+  int32 quantity = 2;
+  string order_id = 3;
+  string operator_id = 4;
+}
+
+// SetInventoryStatusRequest represents a request to set the inventory status
+message SetInventoryStatusRequest {
+  string id = 1;
+  string status = 2;
+  string reason = 3;
+  string operator_id = 4;
+}
+
+// GetInventoryHistoryRequest represents a request to retrieve inventory history
+message GetInventoryHistoryRequest {
+  string inventory_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+// InventoryHistoryResponse represents a response containing inventory history
+// records
+message InventoryHistoryResponse {
+  bool success = 1;
+  string message = 2;
+  repeated InventoryHistory records = 3;
+  int32 total = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+// CheckStockRequest represents a request to check stock availability
+message CheckStockRequest {
+  string product_id = 1;
+  string sku_id = 2;
+  int32 quantity = 3;
+}
+
+// CheckStockResponse represents a response containing stock availability
+// information
+message CheckStockResponse {
+  bool success = 1;
+  string message = 2;
+  bool available = 3;
+  int32 available_qty = 4;
+}
+
+// CreateWarehouseRequest represents a request to create a warehouse
+message CreateWarehouseRequest {
+  string name = 1;
+  string code = 2;
+  string address = 3;
+  string contact_name = 4;
+  string contact_phone = 5;
+  bool is_default = 6;
+}
+
+// GetWarehouseRequest represents a request to retrieve a warehouse
+message GetWarehouseRequest { string id = 1; }
+
+// GetWarehouseByCodeRequest represents a request to retrieve a warehouse by
+// code
+message GetWarehouseByCodeRequest { string code = 1; }
+
+// GetDefaultWarehouseRequest represents a request to retrieve the default
+// warehouse
+message GetDefaultWarehouseRequest {}
+
+// UpdateWarehouseRequest represents a request to update a warehouse
+message UpdateWarehouseRequest {
+  string id = 1;
+  string name = 2;
+  string code = 3;
+  string address = 4;
+  string contact_name = 5;
+  string contact_phone = 6;
+  int32 status = 7;
+  bool is_default = 8;
+}
+
+// DeleteWarehouseRequest represents a request to delete a warehouse
+message DeleteWarehouseRequest { string id = 1; }
+
+// ListWarehousesRequest represents a request to list all warehouses
+message ListWarehousesRequest {}
+
+// WarehouseResponse represents a response containing a warehouse
+message WarehouseResponse {
+  bool success = 1;
+  string message = 2;
+  Warehouse warehouse = 3;
+}
+
+// ListWarehousesResponse represents a response containing warehouses
+message ListWarehousesResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Warehouse warehouses = 3;
+}
+
+// SetDefaultWarehouseRequest represents a request to set a warehouse as the
+// default
+message SetDefaultWarehouseRequest { string id = 1; }
+
+// EnableWarehouseRequest represents a request to enable a warehouse
+message EnableWarehouseRequest { string id = 1; }
+
+// DisableWarehouseRequest represents a request to disable a warehouse
+message DisableWarehouseRequest { string id = 1; }
+
+// GenericResponse represents a generic response
+message GenericResponse {
+  bool success = 1;
+  string message = 2;
+}

@@ -46,10 +46,20 @@ type RegistryConfig struct {
 
 // ServicesConfig holds configuration for backend services
 type ServicesConfig struct {
-	User ServiceConfig `yaml:"user"`
-	// Add other services as they are created
-	// Product ServiceConfig `yaml:"product"`
-	// Order   ServiceConfig `yaml:"order"`
+	User           ServiceConfig `yaml:"user"`
+	Product        ServiceConfig `yaml:"product"`
+	Order          ServiceConfig `yaml:"order"`
+	Cart           ServiceConfig `yaml:"cart"`
+	Inventory      ServiceConfig `yaml:"inventory"`
+	Payment        ServiceConfig `yaml:"payment"`
+	Search         ServiceConfig `yaml:"search"`
+	Promotion      ServiceConfig `yaml:"promotion"`
+	Content        ServiceConfig `yaml:"content"`
+	Notification   ServiceConfig `yaml:"notification"`
+	Recommendation ServiceConfig `yaml:"recommendation"`
+	Admin          ServiceConfig `yaml:"admin"`
+	Portal         ServiceConfig `yaml:"portal"`
+	Auth           ServiceConfig `yaml:"auth"`
 }
 
 // ServiceConfig holds configuration for an individual service

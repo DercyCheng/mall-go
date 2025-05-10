@@ -18,13 +18,45 @@ services:
   user:
     name: user-service
     timeout: 5 # seconds
-  # Add other services here as your project grows
-  # product:
-  #   name: product-service
-  #   timeout: 5
-  # order:
-  #   name: order-service
-  #   timeout: 5
+  product:
+    name: product-service
+    timeout: 5 # seconds
+  order:
+    name: order-service
+    timeout: 5 # seconds
+  cart:
+    name: cart-service
+    timeout: 5 # seconds
+  inventory:
+    name: inventory-service
+    timeout: 5 # seconds
+  payment:
+    name: payment-service
+    timeout: 5 # seconds
+  search:
+    name: search-service
+    timeout: 10 # seconds (search might take longer)
+  promotion:
+    name: promotion-service
+    timeout: 5 # seconds
+  content:
+    name: content-service
+    timeout: 5 # seconds
+  notification:
+    name: notification-service
+    timeout: 5 # seconds
+  recommendation:
+    name: recommendation-service
+    timeout: 8 # seconds (AI recommendations might take longer)
+  admin:
+    name: admin-service
+    timeout: 5 # seconds
+  portal:
+    name: portal-service
+    timeout: 5 # seconds
+  auth:
+    name: auth-service
+    timeout: 3 # seconds
 
 rate_limit:
   enabled: true
