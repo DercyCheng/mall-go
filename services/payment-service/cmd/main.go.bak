@@ -23,7 +23,7 @@ import (
 	"mall-go/services/payment-service/application/service"
 	"mall-go/services/payment-service/domain/model"
 	"mall-go/services/payment-service/domain/repository"
-	"mall-go/pkg/config"
+	"mall-go/services/payment-service/infrastructure/config"
 	"mall-go/services/payment-service/infrastructure/persistence/mysql"
 	redisCache "mall-go/services/payment-service/infrastructure/persistence/redis"
 	"mall-go/services/payment-service/infrastructure/provider"

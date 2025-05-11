@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -19,32 +18,31 @@ import (
 	"mall-go/services/cart-service/infrastructure/persistence/mysql"
 	"mall-go/services/cart-service/infrastructure/persistence/redis"
 	"mall-go/services/cart-service/infrastructure/config"
-	mallconfig "mall-go/pkg/config"
 	"mall-go/services/cart-service/proto/cartpb"
 )
 
 func main() {
-	// Initialize configuration using the unified config approach
-	config := &config.Config{}
-	if err := mallconfig.LoadServiceConfig("cart-service", config); err != nil {
+	// Initialize configuration
+	if err := config.LoadConfig(); err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 	
 	// Initialize MySQL database
-	mysqlRepo, err := mysql.NewMySQLRepository(config.Database)
+	mysqlRepo, err := mysql.NewMySQLRepository(config.GetConfig().Database)
 	if err != nil {
 		log.Fatalf("Failed to initialize MySQL repository: %v", err)
 	}
 
 	// Initialize Redis client
-	redisCache, err := redis.NewRedisCache(config.Redis)
+	redisCache, err := redis.NewRedisCache(config.GetConfig().Redis)
 	if err != nil {
 		log.Fatalf("Failed to initialize Redis cache: %v", err)
 	}
 	
 	// Initialize application services
 	cartService := service.NewCartService(mysqlRepo, redisCache)
-		// Initialize gRPC handlers
+	
+	// Initialize gRPC handlers
 	cartHandler := handler.NewCartHandler(cartService)
 	
 	// Start gRPC server
@@ -57,14 +55,15 @@ func main() {
 	reflection.Register(grpcServer)
 	
 	// Listen on configured port
-	port := config.Server.GRPCPort
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	port := viper.GetString("server.grpc_port")
+	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		log.Fatalf("Failed to listen on port %d: %v", port, err)
+		log.Fatalf("Failed to listen on port %s: %v", port, err)
 	}
-		// Handle graceful shutdown
+	
+	// Handle graceful shutdown
 	go func() {
-		log.Printf("Starting gRPC server on port %d", port)
+		log.Printf("Starting gRPC server on port %s", port)
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("Failed to serve: %v", err)
 		}

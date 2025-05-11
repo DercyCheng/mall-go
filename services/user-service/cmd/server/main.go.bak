@@ -26,7 +26,7 @@ import (
 	"mall-go/services/user-service/application/service"
 	"mall-go/services/user-service/domain/model"
 	"mall-go/services/user-service/domain/repository"
-	"mall-go/pkg/config"
+	"mall-go/services/user-service/infrastructure/config"
 	persistence "mall-go/services/user-service/infrastructure/persistence"
 	userpb "mall-go/services/user-service/proto"
 )

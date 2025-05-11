@@ -21,7 +21,7 @@ import (
 	"mall-go/services/inventory-service/api/handler"
 	"mall-go/services/inventory-service/application/service"
 	"mall-go/services/inventory-service/domain/repository"
-	"mall-go/pkg/config"
+	"mall-go/services/inventory-service/infrastructure/config"
 	"mall-go/services/inventory-service/infrastructure/persistence/mysql"
 	"mall-go/services/inventory-service/infrastructure/persistence/redis"
 	"mall-go/services/inventory-service/proto/inventorypb"

@@ -17,7 +17,7 @@ import (
 
 	"mall-go/services/gateway-service/api/middleware"
 	"mall-go/services/gateway-service/api/proxy"
-	"mall-go/pkg/config"
+	"mall-go/services/gateway-service/infrastructure/config"
 )
 
 func main() {

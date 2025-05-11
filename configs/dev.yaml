@@ -1,0 +1,229 @@
+# Development Environment Configuration
+# This file contains all configuration for the development environment
+
+# Database configuration
+database:
+  driver: mysql
+  host: localhost
+  port: 3306
+  username: root
+  password: root
+  dbname: mall_go
+  max_open_conns: 100
+  max_idle_conns: 10
+  conn_max_lifetime: 3600 # seconds
+
+# Redis configuration
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 0
+  pool_size: 100
+  min_idle_conns: 10
+
+# Authentication configuration
+auth:
+  jwt_secret: 5gKYk2VZ4fW3bH6jPt8vNxrJqSaL1cEm
+  token_expiry: 86400 # seconds (24 hours)
+  refresh_token_expiry: 604800 # seconds (7 days)
+
+# Service registry configuration
+registry:
+  type: consul
+  address: localhost:8500
+
+# Logging configuration
+logging:
+  level: debug # debug, info, warn, error
+  format: json # json, text
+  output: stdout # stdout, file
+
+# Tracing configuration
+tracing:
+  enabled: true
+  type: jaeger
+  endpoint: http://localhost:14268/api/traces
+
+# Service specific configurations
+services:
+  # Auth Service Configuration
+  auth-service:
+    server:
+      http_port: 8010
+      grpc_port: 18010
+      mode: debug
+      timeout: 30 # seconds
+    registry:
+      service_name: auth-service
+      tags:
+        - auth
+        - security
+    logging:
+      file_path: ./logs/auth-service.log
+    tracing:
+      service_name: auth-service
+
+  # User Service Configuration
+  user-service:
+    server:
+      http_port: 8020
+      grpc_port: 18020
+      mode: debug
+      timeout: 30 # seconds
+    grpc:
+      max_concurrent_streams: 1000
+      connection_timeout: 10
+      keepalive_time: 60
+      keepalive_timeout: 20
+    registry:
+      service_name: user-service
+      tags:
+        - user
+        - api
+    logging:
+      file_path: ./logs/user-service.log
+    tracing:
+      service_name: user-service
+
+  # Cart Service Configuration
+  cart-service:
+    server:
+      http_port: 8030
+      grpc_port: 18030
+      mode: debug
+      timeout: 30 # seconds
+    registry:
+      service_name: cart-service
+      tags:
+        - cart
+        - api
+    logging:
+      file_path: ./logs/cart-service.log
+    tracing:
+      service_name: cart-service
+
+  # Order Service Configuration
+  order-service:
+    server:
+      http_port: 8040
+      grpc_port: 18040
+      mode: debug
+      timeout: 30 # seconds
+    registry:
+      service_name: order-service
+      tags:
+        - order
+        - api
+    logging:
+      file_path: ./logs/order-service.log
+    tracing:
+      service_name: order-service
+
+  # Inventory Service Configuration
+  inventory-service:
+    server:
+      http_port: 8050
+      grpc_port: 18050
+      mode: debug
+      timeout: 30 # seconds
+    registry:
+      service_name: inventory-service
+      tags:
+        - inventory
+        - api
+    logging:
+      file_path: ./logs/inventory-service.log
+    tracing:
+      service_name: inventory-service
+
+  # Product Service Configuration
+  product-service:
+    server:
+      http_port: 8070
+      grpc_port: 18070
+      mode: debug
+      timeout: 30 # seconds
+    registry:
+      service_name: product-service
+      tags:
+        - product
+        - api
+    logging:
+      file_path: ./logs/product-service.log
+    tracing:
+      service_name: product-service
+
+  # Gateway Service Configuration
+  gateway-service:
+    server:
+      port: 8000
+      mode: debug
+    registry:
+      service_name: gateway-service
+      tags:
+        - gateway
+        - api
+    services:
+      user:
+        name: user-service
+        timeout: 5 # seconds
+      product:
+        name: product-service
+        timeout: 5 # seconds
+      order:
+        name: order-service
+        timeout: 5 # seconds
+      cart:
+        name: cart-service
+        timeout: 5 # seconds
+      inventory:
+        name: inventory-service
+        timeout: 5 # seconds
+      payment:
+        name: payment-service
+        timeout: 5 # seconds
+      search:
+        name: search-service
+        timeout: 10 # seconds (search might take longer)
+      promotion:
+        name: promotion-service
+        timeout: 5 # seconds
+      content:
+        name: content-service
+        timeout: 5 # seconds
+      notification:
+        name: notification-service
+        timeout: 5 # seconds
+      recommendation:
+        name: recommendation-service
+        timeout: 8 # seconds (AI recommendations might take longer)
+      admin:
+        name: admin-service
+        timeout: 5 # seconds
+      portal:
+        name: portal-service
+        timeout: 5 # seconds
+      auth:
+        name: auth-service
+        timeout: 3 # seconds
+    rate_limit:
+      enabled: true
+      requests_per_second: 100
+      burst_size: 50
+    cors:
+      allowed_origins:
+        - "*"
+      allowed_methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowed_headers:
+        - Content-Type
+        - Authorization
+      allow_credentials: true
+      max_age: 86400 # seconds
+    logging:
+      file_path: ./logs/gateway-service.log

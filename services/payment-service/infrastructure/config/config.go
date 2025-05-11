@@ -2,11 +2,7 @@ package config
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-	
-	"github.com/spf13/viper"
+	mallconfig "mall-go/pkg/config"
 )
 
 // Config holds all configuration for the service
@@ -116,44 +112,12 @@ type PaymentProviderConfig struct {
 	Sandbox           bool   `mapstructure:"sandbox"`
 }
 
-// LoadConfig loads the configuration from config.yaml
+// LoadConfig loads the configuration for the payment service
 func LoadConfig() (*Config, error) {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	
-	// Try to find the config file in various locations
-	configPaths := []string{
-		".",
-		"./configs",
-		"../configs",
-		"../../configs",
+	config := &Config{}
+	err := mallconfig.LoadServiceConfig("payment-service", config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load payment service config: %w", err)
 	}
-	
-	// Get executable directory and add it to the search paths
-	execPath, err := os.Executable()
-	if err == nil {
-		execDir := filepath.Dir(execPath)
-		configPaths = append(configPaths, execDir, filepath.Join(execDir, "configs"))
-	}
-	
-	// Add the paths to viper's search paths
-	for _, path := range configPaths {
-		viper.AddConfigPath(path)
-	}
-	
-	// Environment variables
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	
-	// Read the config file
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
-	}
-	
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
-	}
-	
-	return &config, nil
+	return config, nil
 }
