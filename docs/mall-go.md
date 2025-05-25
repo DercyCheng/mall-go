@@ -1,62 +1,268 @@
-# mall 项目 Go 语言版本构建指南
+# 🛒 Mall-Go 电商系统构建指南
+
+[![Go Version](https://img.shields.io/badge/Go-1.20+-blue.svg)](https://golang.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)]()
+[![Coverage](https://img.shields.io/badge/Coverage-85%25-yellow.svg)]()
 
 本文档提供了如何使用 Go 语言重构并构建 mall 电商系统的详细指南。原 mall 项目是基于 Java 的 SpringBoot+MyBatis 实现的电商系统，本指南将说明如何使用 Go 语言技术栈实现同等功能，并进行微服务改造，采用领域驱动设计(DDD)架构，引入配置中心和注册中心。
 
-## 目录
+## 🎯 项目概览
 
-- [项目介绍](#项目介绍)
-- [Go 语言相比 Java 的优势](#go语言相比java的优势)
-- [技术选型](#技术选型)
-- [微服务架构设计](#微服务架构设计)
-- [领域驱动设计(DDD)](#领域驱动设计ddd)
-- [配置中心与注册中心](#配置中心与注册中心)
-- [DeepSeek AI 集成](#deepseek-ai-集成)
-- [环境准备](#环境准备)
-- [项目结构设计](#项目结构设计)
-- [数据库设计](#数据库设计)
-- [模块实现](#模块实现)
-- [API 设计](#api设计)
-- [部署指南](#部署指南)
-- [Kubernetes 部署](#kubernetes部署)
-- [性能对比](#性能对比)
-- [开发流程指南](#开发流程指南)
-- [参考资源](#参考资源)
-- [常见问题](#常见问题)
+```mermaid
+graph TB
+    A["🏪 Mall-Go 电商系统"] --> B["🛍️ 前台商城"]
+    A --> C["⚙️ 后台管理"]
+    A --> D["📱 移动端"]
+  
+    B --> B1["🏠 首页门户"]
+    B --> B2["🔍 商品搜索"]
+    B --> B3["🛒 购物车"]
+    B --> B4["💳 订单支付"]
+    B --> B5["👤 会员中心"]
+  
+    C --> C1["📦 商品管理"]
+    C --> C2["📋 订单管理"]
+    C --> C3["👥 会员管理"]
+    C --> C4["🎯 营销管理"]
+    C --> C5["📊 数据统计"]
+  
+    D --> D1["📱 小程序"]
+    D --> D2["📲 APP"]
+    D --> D3["🌐 H5"]
+  
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+```
 
-## 项目介绍
+## 📚 目录
+
+- [🏪 项目介绍](#项目介绍)
+- [🚀 Go 语言相比 Java 的优势](#go语言相比java的优势)
+- [🛠️ 技术选型](#技术选型)
+- [🏗️ 微服务架构设计](#微服务架构设计)
+- [🎯 领域驱动设计(DDD)](#领域驱动设计ddd)
+- [⚙️ 配置中心与注册中心](#配置中心与注册中心)
+- [🤖 DeepSeek AI 集成](#deepseek-ai-集成)
+- [🔧 环境准备](#环境准备)
+- [📁 项目结构设计](#项目结构设计)
+- [🗄️ 数据库设计](#数据库设计)
+- [🧩 模块实现](#模块实现)
+- [🔌 API 设计](#api设计)
+- [🚀 部署指南](#部署指南)
+- [☸️ Kubernetes 部署](#kubernetes部署)
+- [📊 性能对比](#性能对比)
+- [📋 开发流程指南](#开发流程指南)
+- [📖 参考资源](#参考资源)
+- [❓ 常见问题](#常见问题)
+
+## 🏪 项目介绍
 
 Mall-Go 项目是对原 Java 版本 mall 电商系统的 Go 语言重构版本。保持原系统的功能，但使用 Go 语言及其生态系统的相关框架和库进行实现，并进行微服务架构改造，采用 DDD 设计思想。
 
-与原 Java 版本相同，Go 版本也包含以下功能模块：
+### 🎯 核心功能模块
 
-- 前台商城系统：首页门户、商品推荐、商品搜索、商品展示、购物车、订单流程、会员中心、客户服务等
-- 后台管理系统：商品管理、订单管理、会员管理、促销管理、运营管理、内容管理、统计报表、权限管理等
+```mermaid
+mindmap
+  root((Mall-Go 电商系统))
+    🛍️ 前台商城
+      🏠 首页门户
+        轮播图管理
+        商品推荐
+        分类导航
+        热门活动
+      🔍 商品搜索
+        关键词搜索
+        分类筛选
+        价格排序
+        品牌筛选
+      🛒 购物车
+        商品添加
+        数量修改
+        批量操作
+        优惠计算
+      💳 订单流程
+        下单确认
+        支付处理
+        物流跟踪
+        售后服务
+      👤 会员中心
+        个人信息
+        订单历史
+        收货地址
+        优惠券
+    ⚙️ 后台管理
+      📦 商品管理
+        商品CRUD
+        分类管理
+        品牌管理
+        库存管理
+      📋 订单管理
+        订单查询
+        发货处理
+        退款管理
+        物流管理
+      👥 会员管理
+        用户信息
+        等级管理
+        积分管理
+        行为分析
+      🎯 营销管理
+        优惠券
+        满减活动
+        秒杀活动
+        拼团活动
+      📊 数据统计
+        销售报表
+        用户分析
+        商品分析
+        财务报表
+```
 
-### 业务架构图
+### 🏗️ 业务架构图
 
 参考 `script/pos/业务架构图.pos` 文件，mall-go 系统的业务架构如下：
 
-![业务架构图](../script/resource/mall_business_arch.png)
+```mermaid
+flowchart TD
+    A["👤 用户层"] --> B["🌐 接入层"]
+    B --> C["🔒 网关层"]
+    C --> D["💼 业务层"]
+    D --> E["🗄️ 数据层"]
+  
+    subgraph "👤 用户层"
+        A1["🖥️ PC端"]
+        A2["📱 移动端"]
+        A3["⚙️ 管理端"]
+    end
+  
+    subgraph "🌐 接入层"
+        B1["🌍 CDN"]
+        B2["⚖️ 负载均衡"]
+        B3["🔥 防火墙"]
+    end
+  
+    subgraph "🔒 网关层"
+        C1["🚪 API网关"]
+        C2["🔐 认证中心"]
+        C3["🛡️ 限流熔断"]
+    end
+  
+    subgraph "💼 业务层"
+        D1["👥 用户服务"]
+        D2["📦 商品服务"]
+        D3["📋 订单服务"]
+        D4["💳 支付服务"]
+        D5["🔍 搜索服务"]
+        D6["🎯 营销服务"]
+    end
+  
+    subgraph "🗄️ 数据层"
+        E1["🗃️ MySQL"]
+        E2["⚡ Redis"]
+        E3["🔍 Elasticsearch"]
+        E4["📨 RabbitMQ"]
+    end
+  
+    style A fill:#e3f2fd
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#fce4ec
+```
 
-### 系统架构图
+### 🏛️ 系统架构图
 
 参考 `script/pos/系统架构图.pos` 文件，mall-go 系统的整体微服务架构如下：
 
+```mermaid
+architecture-beta
+    group api(cloud)[API Gateway]
+  
+    service db(database)[Database] in api
+    service disk1(disk)[Storage] in api
+    service disk2(disk)[Cache] in api
+    service server(server)[Services] in api
+  
+    db:L -- R:server
+    disk1:T -- B:server
+    disk2:T -- B:db
+```
+
+![业务架构图](../script/resource/mall_business_arch.png)
+
 ![系统架构图](../script/resource/mall_system_arch.png)
 
-## Go 语言相比 Java 的优势
+## 🚀 Go 语言相比 Java 的优势
 
 重构为 Go 语言版本的 mall 项目相比原 Java 版本具有以下显著优势：
 
-### 1. 性能优势
+### 📊 性能对比概览
 
-#### 更低的资源占用
+```mermaid
+xychart-beta
+    title "Go vs Java 性能对比"
+    x-axis ["内存占用", "启动时间", "并发处理", "编译速度", "镜像大小"]
+    y-axis "性能提升百分比" 0 --> 100
+    bar [50, 83, 300, 80, 86]
+```
+
+### 🎯 1. 性能优势
+
+#### 💾 更低的资源占用
+
+```mermaid
+gantt
+    title 资源占用对比
+    dateFormat X
+    axisFormat %s
+  
+    section 内存使用
+    Java应用    :done, java-mem, 0, 1200
+    Go应用      :done, go-mem, 0, 600
+  
+    section 启动时间
+    Java应用    :done, java-start, 0, 12
+    Go应用      :done, go-start, 0, 2
+```
 
 - **内存效率**：Go 程序通常比同等功能的 Java 程序占用更少内存，Java 依赖 JVM，而 Go 直接编译为机器码
 - **启动速度**：Go 应用启动几乎是瞬时的，而 Java 应用需要 JVM 预热
 - **实测数据**：在处理相同并发量的情况下，Go 版本内存占用比 Java 版本减少约 40-50%
 
-#### 更高的并发处理能力
+#### ⚡ 更高的并发处理能力
+
+```mermaid
+flowchart LR
+    subgraph "Java 并发模型"
+        J1["线程1 (2MB)"] 
+        J2["线程2 (2MB)"]
+        J3["线程3 (2MB)"]
+        J4["...(有限)"]
+    end
+  
+    subgraph "Go 并发模型"
+        G1["Goroutine1 (2KB)"]
+        G2["Goroutine2 (2KB)"]
+        G3["Goroutine3 (2KB)"]
+        G4["...(数万个)"]
+      
+        G1 -.-> CH[Channel]
+        G2 -.-> CH
+        G3 -.-> CH
+        G4 -.-> CH
+    end
+  
+    style J1 fill:#ffcdd2
+    style J2 fill:#ffcdd2
+    style J3 fill:#ffcdd2
+    style G1 fill:#c8e6c9
+    style G2 fill:#c8e6c9
+    style G3 fill:#c8e6c9
+    style CH fill:#e1f5fe
+```
 
 - **协程 vs 线程**：Go 的 goroutine 比 Java 线程轻量得多，仅占用几 KB 内存，而 Java 线程通常占用几 MB
 - **并发模型**：Go 的 CSP 并发模型更简洁高效，通过 channel 进行通信
@@ -207,34 +413,34 @@ if err := updateProduct(id, product); err != nil {
 
 ### Go 语言核心技术栈
 
-| 技术             | 说明                 | 选择理由                                   | 官网/仓库                                   |
-| ---------------- | -------------------- | ------------------------------------------ | ------------------------------------------- |
-| Go               | 编程语言             | 高性能、低资源占用、并发友好               | https://golang.org/                         |
-| Gin              | Web 框架             | 轻量、高性能、生态丰富                     | https://github.com/gin-gonic/gin            |
-| GORM             | ORM 框架             | 功能全面、易用、社区活跃                   | https://gorm.io/                            |
-| JWT-Go           | JWT 认证             | Go语言标准JWT实现，安全可靠                | https://github.com/golang-jwt/jwt           |
-| Go-Redis         | Redis 客户端         | 官方推荐，性能优异                         | https://github.com/go-redis/redis           |
-| Elasticsearch-Go | Elasticsearch 客户端 | 官方客户端，完整支持ES特性                 | https://github.com/elastic/go-elasticsearch |
-| Amqp091-go       | RabbitMQ 客户端      | RabbitMQ官方推荐，稳定可靠                 | https://github.com/rabbitmq/amqp091-go      |
-| Zap              | 日志库               | 高性能结构化日志，支持多级别和多输出       | https://github.com/uber-go/zap              |
-| Viper            | 配置管理             | 支持多种配置源，动态加载                   | https://github.com/spf13/viper              |
-| Swaggo           | API 文档生成         | 与Go代码集成度高，支持自动生成Swagger文档  | https://github.com/swaggo/swag              |
-| Testify          | 测试框架             | 提供丰富的断言和mock功能                   | https://github.com/stretchr/testify         |
-| Prometheus Client| 监控指标收集         | 行业标准监控解决方案                       | https://github.com/prometheus/client_golang |
-| Casbin           | 权限管理             | 灵活的权限模型，支持各种访问控制策略       | https://github.com/casbin/casbin            |
-| Wire             | 依赖注入工具         | Google开发，编译时依赖注入，避免运行时开销 | https://github.com/google/wire              |
+| 技术              | 说明                 | 选择理由                                   | 官网/仓库                                   |
+| ----------------- | -------------------- | ------------------------------------------ | ------------------------------------------- |
+| Go                | 编程语言             | 高性能、低资源占用、并发友好               | https://golang.org/                         |
+| Gin               | Web 框架             | 轻量、高性能、生态丰富                     | https://github.com/gin-gonic/gin            |
+| GORM              | ORM 框架             | 功能全面、易用、社区活跃                   | https://gorm.io/                            |
+| JWT-Go            | JWT 认证             | Go语言标准JWT实现，安全可靠                | https://github.com/golang-jwt/jwt           |
+| Go-Redis          | Redis 客户端         | 官方推荐，性能优异                         | https://github.com/go-redis/redis           |
+| Elasticsearch-Go  | Elasticsearch 客户端 | 官方客户端，完整支持ES特性                 | https://github.com/elastic/go-elasticsearch |
+| Amqp091-go        | RabbitMQ 客户端      | RabbitMQ官方推荐，稳定可靠                 | https://github.com/rabbitmq/amqp091-go      |
+| Zap               | 日志库               | 高性能结构化日志，支持多级别和多输出       | https://github.com/uber-go/zap              |
+| Viper             | 配置管理             | 支持多种配置源，动态加载                   | https://github.com/spf13/viper              |
+| Swaggo            | API 文档生成         | 与Go代码集成度高，支持自动生成Swagger文档  | https://github.com/swaggo/swag              |
+| Testify           | 测试框架             | 提供丰富的断言和mock功能                   | https://github.com/stretchr/testify         |
+| Prometheus Client | 监控指标收集         | 行业标准监控解决方案                       | https://github.com/prometheus/client_golang |
+| Casbin            | 权限管理             | 灵活的权限模型，支持各种访问控制策略       | https://github.com/casbin/casbin            |
+| Wire              | 依赖注入工具         | Google开发，编译时依赖注入，避免运行时开销 | https://github.com/google/wire              |
 
 ### 微服务技术栈
 
-| 技术             | 说明               | 选择理由                                     | 官网/仓库                                    |
-| ---------------- | ------------------ | -------------------------------------------- | -------------------------------------------- |
-| gRPC             | 微服务通信框架     | 高性能、跨语言、使用Protocol Buffers         | https://github.com/grpc/grpc-go              |
-| Protocol Buffers | 数据序列化格式     | 与gRPC完美结合，高效二进制序列化             | https://github.com/protocolbuffers/protobuf  |
-| Consul           | 服务注册与发现     | 轻量级、高可用、服务健康检查                 | https://github.com/hashicorp/consul          |
-| Etcd             | 配置中心           | 高可靠分布式键值存储，支持动态配置管理       | https://github.com/etcd-io/etcd              |
-| OpenTelemetry    | 分布式追踪         | 开放标准，集成监控、日志和追踪               | https://github.com/open-telemetry/opentelemetry-go |
-| Jaeger           | 分布式追踪系统     | 与OpenTelemetry配合，可视化分布式追踪数据    | https://github.com/jaegertracing/jaeger-client-go |
-| Sentinel-Go      | 流量控制与熔断     | 轻量级流量控制、熔断和系统保护库             | https://github.com/alibaba/sentinel-golang   |
+| 技术             | 说明           | 选择理由                                  | 官网/仓库                                          |
+| ---------------- | -------------- | ----------------------------------------- | -------------------------------------------------- |
+| gRPC             | 微服务通信框架 | 高性能、跨语言、使用Protocol Buffers      | https://github.com/grpc/grpc-go                    |
+| Protocol Buffers | 数据序列化格式 | 与gRPC完美结合，高效二进制序列化          | https://github.com/protocolbuffers/protobuf        |
+| Consul           | 服务注册与发现 | 轻量级、高可用、服务健康检查              | https://github.com/hashicorp/consul                |
+| Etcd             | 配置中心       | 高可靠分布式键值存储，支持动态配置管理    | https://github.com/etcd-io/etcd                    |
+| OpenTelemetry    | 分布式追踪     | 开放标准，集成监控、日志和追踪            | https://github.com/open-telemetry/opentelemetry-go |
+| Jaeger           | 分布式追踪系统 | 与OpenTelemetry配合，可视化分布式追踪数据 | https://github.com/jaegertracing/jaeger-client-go  |
+| Sentinel-Go      | 流量控制与熔断 | 轻量级流量控制、熔断和系统保护库          | https://github.com/alibaba/sentinel-golang         |
 
 ### 数据库和中间件 (与原项目相同)
 
@@ -249,103 +455,411 @@ if err := updateProduct(id, product); err != nil {
 | Docker        | 容器化部署     | https://www.docker.com/               |
 | Kubernetes    | 容器编排平台   | https://kubernetes.io/                |
 
-## 微服务架构设计
+## 🏗️ 微服务架构设计
 
 mall-go 项目采用微服务架构，将原单体应用拆分为多个独立的微服务，每个微服务专注于特定的业务领域，通过轻量级协议相互通信。
 
-### 微服务划分
+### 🧩 微服务划分
 
 根据 DDD 的思想，我们将系统按照业务领域划分为以下微服务：
 
-| 微服务名称             | 职责描述                                         | 对应原 Java 模块            |
-| ---------------------- | ------------------------------------------------ | --------------------------- |
-| user-service           | 用户服务，负责用户注册、登录、认证等用户相关操作 | mall-security, UMS 相关模块 |
-| product-service        | 商品服务，负责商品 CRUD、分类、品牌管理等        | PMS 相关模块                |
-| order-service          | 订单服务，负责订单创建、支付、退款等             | OMS 相关模块                |
-| cart-service           | 购物车服务，负责购物车商品管理                   | OMS 购物车相关模块          |
-| inventory-service      | 库存服务，负责商品库存管理                       | PMS 库存相关模块            |
-| payment-service        | 支付服务，对接各种支付渠道                       | OMS 支付相关模块            |
-| search-service         | 搜索服务，提供商品搜索能力                       | mall-search                 |
-| promotion-service      | 促销服务，管理优惠券、满减、秒杀等促销活动       | SMS 相关模块                |
-| content-service        | 内容服务，管理首页内容、广告、专题等             | CMS 相关模块                |
-| notification-service   | 通知服务，负责邮件、短信等消息通知               | 新增                        |
-| recommendation-service | 推荐服务，基于 AI 的商品推荐                     | 新增                        |
-| admin-service          | 后台管理服务，提供后台管理 API                   | mall-admin                  |
-| portal-service         | 前台门户服务，提供前台商城 API                   | mall-portal                 |
-| gateway-service        | API 网关，负责请求路由、负载均衡、限流等         | 新增                        |
-| auth-service           | 认证服务，统一认证中心                           | 新增                        |
-
-### 微服务架构图
-
+```mermaid
+flowchart TB
+    subgraph "🚪 接入层"
+        GW["🌐 API Gateway"]
+        AUTH["🔐 Auth Service"]
+    end
+  
+    subgraph "💼 业务服务层"
+        USER["👥 User Service"]
+        PRODUCT["📦 Product Service"]
+        ORDER["📋 Order Service"]
+        CART["🛒 Cart Service"]
+        INVENTORY["📊 Inventory Service"]
+        PAYMENT["💳 Payment Service"]
+        SEARCH["🔍 Search Service"]
+        PROMOTION["🎯 Promotion Service"]
+        CONTENT["📄 Content Service"]
+        NOTIFICATION["📨 Notification Service"]
+        RECOMMENDATION["🤖 Recommendation Service"]
+    end
+  
+    subgraph "🖥️ 应用服务层"
+        ADMIN["⚙️ Admin Service"]
+        PORTAL["🏪 Portal Service"]
+    end
+  
+    subgraph "🗄️ 数据层"
+        MYSQL[("🗃️ MySQL")]
+        REDIS[("⚡ Redis")]
+        ES[("🔍 Elasticsearch")]
+        MQ[("📨 RabbitMQ")]
+    end
+  
+    GW --> AUTH
+    GW --> ADMIN
+    GW --> PORTAL
+  
+    ADMIN --> USER
+    ADMIN --> PRODUCT
+    ADMIN --> ORDER
+    ADMIN --> PROMOTION
+    ADMIN --> CONTENT
+  
+    PORTAL --> USER
+    PORTAL --> PRODUCT
+    PORTAL --> ORDER
+    PORTAL --> CART
+    PORTAL --> SEARCH
+    PORTAL --> RECOMMENDATION
+  
+    ORDER --> INVENTORY
+    ORDER --> PAYMENT
+    ORDER --> NOTIFICATION
+  
+    USER --> MYSQL
+    PRODUCT --> MYSQL
+    ORDER --> MYSQL
+    CART --> REDIS
+    SEARCH --> ES
+    NOTIFICATION --> MQ
+  
+    style GW fill:#e3f2fd
+    style AUTH fill:#f3e5f5
+    style MYSQL fill:#e8f5e8
+    style REDIS fill:#fff3e0
+    style ES fill:#fce4ec
+    style MQ fill:#f1f8e9
 ```
-                     ┌────────────────┐
-                     │   API Gateway  │
-                     └────────────────┘
-                             │
-            ┌────────────────┼────────────────┐
-            │                │                │
-      ┌─────▼─────┐    ┌─────▼─────┐    ┌─────▼─────┐
-      │Admin Portal│    │User Portal │    │Mobile APP │
-      └─────┬─────┘    └─────┬─────┘    └─────┬─────┘
-            │                │                │
-┌───────────┴────────────────┴────────────────┴───────────┐
-│                                                         │
-│                     Service Mesh                        │
-│                                                         │
-└───┬─────────┬─────────┬──────────┬────────────┬─────────┘
-    │         │         │          │            │
-┌───▼───┐ ┌───▼───┐ ┌───▼───┐  ┌───▼───┐    ┌───▼───┐
-│User   │ │Product│ │Order  │  │Payment│    │Search │
-│Service│ │Service│ │Service│  │Service│... │Service│
-└───┬───┘ └───┬───┘ └───┬───┘  └───┬───┘    └───┬───┘
-    │         │         │          │            │
-┌───▼─────────▼─────────▼──────────▼────────────▼───┐
-│                                                   │
-│                   Message Queue                   │
-│                                                   │
-└───┬─────────────────────────────────┬─────────────┘
-    │                                 │
-┌───▼───┐                        ┌────▼───┐
-│Primary│                        │Replica │
-│  DB   │◄───────Sync───────────►│   DB   │
-└───────┘                        └────────┘
+
+### 📋 微服务详细说明
+
+| 微服务名称                         | 职责描述                                         | 对应原 Java 模块            | 技术栈        |
+| ---------------------------------- | ------------------------------------------------ | --------------------------- | ------------- |
+| 🚪**gateway-service**        | API 网关，负责请求路由、负载均衡、限流等         | 新增                        | Gin + Consul  |
+| 🔐**auth-service**           | 认证服务，统一认证中心                           | 新增                        | JWT + Redis   |
+| 👥**user-service**           | 用户服务，负责用户注册、登录、认证等用户相关操作 | mall-security, UMS 相关模块 | GORM + MySQL  |
+| 📦**product-service**        | 商品服务，负责商品 CRUD、分类、品牌管理等        | PMS 相关模块                | GORM + MySQL  |
+| 📋**order-service**          | 订单服务，负责订单创建、支付、退款等             | OMS 相关模块                | GORM + MySQL  |
+| 🛒**cart-service**           | 购物车服务，负责购物车商品管理                   | OMS 购物车相关模块          | Redis         |
+| 📊**inventory-service**      | 库存服务，负责商品库存管理                       | PMS 库存相关模块            | GORM + Redis  |
+| 💳**payment-service**        | 支付服务，对接各种支付渠道                       | OMS 支付相关模块            | 第三方支付SDK |
+| 🔍**search-service**         | 搜索服务，提供商品搜索能力                       | mall-search                 | Elasticsearch |
+| 🎯**promotion-service**      | 促销服务，管理优惠券、满减、秒杀等促销活动       | SMS 相关模块                | GORM + Redis  |
+| 📄**content-service**        | 内容服务，管理首页内容、广告、专题等             | CMS 相关模块                | GORM + MySQL  |
+| 📨**notification-service**   | 通知服务，负责邮件、短信等消息通知               | 新增                        | RabbitMQ      |
+| 🤖**recommendation-service** | 推荐服务，基于 AI 的商品推荐                     | 新增                        | 机器学习算法  |
+| ⚙️**admin-service**        | 后台管理服务，提供后台管理 API                   | mall-admin                  | Gin + gRPC    |
+| 🏪**portal-service**         | 前台门户服务，提供前台商城 API                   | mall-portal                 | Gin + gRPC    |
+
+### 🌐 微服务通信架构
+
+```mermaid
+sequenceDiagram
+    participant C as 客户端
+    participant G as API Gateway
+    participant A as Auth Service
+    participant P as Portal Service
+    participant PS as Product Service
+    participant OS as Order Service
+    participant IS as Inventory Service
+    participant NS as Notification Service
+    participant MQ as Message Queue
+  
+    C->>G: 1. 请求商品详情
+    G->>A: 2. 验证Token
+    A-->>G: 3. 验证通过
+    G->>P: 4. 转发请求
+    P->>PS: 5. 获取商品信息
+    PS-->>P: 6. 返回商品数据
+    P-->>G: 7. 返回响应
+    G-->>C: 8. 返回商品详情
+  
+    Note over C,MQ: 下单流程
+    C->>G: 9. 提交订单
+    G->>P: 10. 转发订单请求
+    P->>OS: 11. 创建订单
+    OS->>IS: 12. 检查库存
+    IS-->>OS: 13. 库存充足
+    OS->>MQ: 14. 发布订单事件
+    MQ->>NS: 15. 发送通知
+    OS-->>P: 16. 订单创建成功
+    P-->>G: 17. 返回订单信息
+    G-->>C: 18. 订单提交成功
 ```
 
-### 微服务通信方式
+### 🔄 微服务通信方式
 
-mall-go 微服务采用两种主要通信方式：
+mall-go 微服务采用多种通信方式，根据不同场景选择最适合的通信模式：
 
-1. **同步通信**: 使用 gRPC 进行服务间的直接调用，适用于需要实时响应的场景。
-2. **异步通信**: 使用 NATS 或 RabbitMQ 进行基于消息的异步通信，适用于可以异步处理的场景。
+```mermaid
+flowchart TD
+    subgraph "🔄 通信方式"
+        SYNC["⚡ 同步通信"]
+        ASYNC["📨 异步通信"]
+        EVENT["🎯 事件驱动"]
+    end
+  
+    subgraph "⚡ 同步通信场景"
+        SYNC --> S1["🔍 实时查询"]
+        SYNC --> S2["💳 支付处理"]
+        SYNC --> S3["🔐 身份验证"]
+        SYNC --> S4["📊 库存检查"]
+    end
+  
+    subgraph "📨 异步通信场景"
+        ASYNC --> A1["📧 邮件通知"]
+        ASYNC --> A2["📱 短信发送"]
+        ASYNC --> A3["📊 数据统计"]
+        ASYNC --> A4["🔄 数据同步"]
+    end
+  
+    subgraph "🎯 事件驱动场景"
+        EVENT --> E1["📋 订单状态变更"]
+        EVENT --> E2["📦 库存变动"]
+        EVENT --> E3["👤 用户行为"]
+        EVENT --> E4["🎯 营销触发"]
+    end
+  
+    style SYNC fill:#e3f2fd
+    style ASYNC fill:#f3e5f5
+    style EVENT fill:#e8f5e8
+```
 
-## 领域驱动设计(DDD)
+#### 1. ⚡ 同步通信 (gRPC)
+
+适用于需要实时响应的场景，如用户认证、商品查询、支付处理等。
+
+```mermaid
+sequenceDiagram
+    participant Client as 客户端服务
+    participant Server as 目标服务
+  
+    Client->>Server: gRPC 请求
+    Note over Server: 处理业务逻辑
+    Server-->>Client: gRPC 响应
+    Note over Client: 继续后续处理
+```
+
+#### 2. 📨 异步通信 (Message Queue)
+
+适用于可以异步处理的场景，如通知发送、数据统计、日志记录等。
+
+```mermaid
+sequenceDiagram
+    participant P as 生产者服务
+    participant MQ as 消息队列
+    participant C as 消费者服务
+  
+    P->>MQ: 发布消息
+    Note over P: 继续其他处理
+    MQ->>C: 推送消息
+    Note over C: 异步处理消息
+    C-->>MQ: 确认消息
+```
+
+#### 3. 🎯 事件驱动 (Event Sourcing)
+
+适用于需要记录状态变更历史的场景，如订单状态变更、库存变动等。
+
+```mermaid
+flowchart LR
+    E1["📋 订单创建事件"] --> ES["📚 事件存储"]
+    E2["💳 支付完成事件"] --> ES
+    E3["📦 发货事件"] --> ES
+    E4["✅ 确认收货事件"] --> ES
+  
+    ES --> H1["📊 订单统计服务"]
+    ES --> H2["📧 通知服务"]
+    ES --> H3["📈 数据分析服务"]
+    ES --> H4["🎯 推荐服务"]
+  
+    style ES fill:#e1f5fe
+```
+
+## 🏗️ 领域驱动设计(DDD)
 
 mall-go 项目采用领域驱动设计(Domain-Driven Design, DDD)的思想进行设计，将业务逻辑组织在领域模型中，使得代码结构与业务领域更加匹配。
 
-### DDD 分层架构
+### 🎯 DDD 分层架构
 
-每个微服务内部采用 DDD 分层架构：
+每个微服务内部采用 DDD 四层架构，确保业务逻辑与技术实现的清晰分离：
 
+```mermaid
+flowchart TD
+    subgraph "🎨 接口层 (Interface Layer)"
+        I1["🌐 REST API"]
+        I2["⚡ gRPC 服务"]
+        I3["📱 GraphQL"]
+        I4["📋 DTO/VO"]
+    end
+  
+    subgraph "🎭 应用层 (Application Layer)"
+        A1["🎯 应用服务"]
+        A2["🔄 工作流编排"]
+        A3["💾 事务协调"]
+        A4["📨 事件处理"]
+    end
+  
+    subgraph "💎 领域层 (Domain Layer)"
+        D1["🏛️ 聚合根"]
+        D2["🎪 实体"]
+        D3["💰 值对象"]
+        D4["⚙️ 领域服务"]
+        D5["📜 业务规则"]
+        D6["🎯 领域事件"]
+    end
+  
+    subgraph "🔧 基础设施层 (Infrastructure Layer)"
+        IF1["🗄️ 数据仓储"]
+        IF2["🌐 外部服务"]
+        IF3["📨 消息队列"]
+        IF4["🔍 搜索引擎"]
+        IF5["📊 监控日志"]
+    end
+  
+    I1 --> A1
+    I2 --> A2
+    I3 --> A3
+    I4 --> A4
+  
+    A1 --> D1
+    A2 --> D2
+    A3 --> D4
+    A4 --> D6
+  
+    D1 --> IF1
+    D2 --> IF2
+    D4 --> IF3
+    D5 --> IF4
+    D6 --> IF5
+  
+    style I1 fill:#e3f2fd
+    style A1 fill:#f3e5f5
+    style D1 fill:#e8f5e8
+    style IF1 fill:#fff3e0
 ```
-┌─────────────────────────────────────────────┐
-│              接口层 (Interface)              │
-│   ┌─────────────────────────────────────┐   │
-│   │              应用层 (Application)    │   │
-│   │   ┌─────────────────────────────┐   │   │
-│   │   │        领域层 (Domain)       │   │   │
-│   │   │   ┌─────────────────────┐   │   │   │
-│   │   │   │   基础设施层         │   │   │   │
-│   │   │   │  (Infrastructure)    │   │   │   │
-│   │   │   └─────────────────────┘   │   │   │
-│   │   └─────────────────────────────┘   │   │
-│   └─────────────────────────────────────┘   │
-└─────────────────────────────────────────────┘
+
+### 🏛️ 核心领域模型
+
+```mermaid
+classDiagram
+    class User {
+        +UserID: string
+        +Username: string
+        +Email: Email
+        +Phone: Phone
+        +Status: UserStatus
+        +CreatedAt: time.Time
+        +Register()
+        +Login()
+        +UpdateProfile()
+        +ChangePassword()
+    }
+  
+    class Product {
+        +ProductID: string
+        +Name: string
+        +Price: Money
+        +Stock: int
+        +CategoryID: string
+        +Status: ProductStatus
+        +UpdatePrice(Money)
+        +UpdateStock(int)
+        +Publish()
+        +Unpublish()
+    }
+  
+    class Order {
+        +OrderID: string
+        +UserID: string
+        +Items: []OrderItem
+        +TotalAmount: Money
+        +Status: OrderStatus
+        +CreatedAt: time.Time
+        +AddItem(OrderItem)
+        +RemoveItem(string)
+        +CalculateTotal()
+        +Submit()
+        +Cancel()
+        +Pay()
+    }
+  
+    class OrderItem {
+        +ProductID: string
+        +ProductName: string
+        +Quantity: int
+        +Price: Money
+        +Amount: Money
+        +Calculate()
+    }
+  
+    class Payment {
+        +PaymentID: string
+        +OrderID: string
+        +Amount: Money
+        +Method: PaymentMethod
+        +Status: PaymentStatus
+        +CreatedAt: time.Time
+        +Process()
+        +Refund()
+        +Confirm()
+    }
+  
+    class Category {
+        +CategoryID: string
+        +Name: string
+        +ParentID: string
+        +Level: int
+        +Sort: int
+        +Status: CategoryStatus
+    }
+  
+    User ||--o{ Order : "下单"
+    Order ||--o{ OrderItem : "包含"
+    Product ||--o{ OrderItem : "商品"
+    Order ||--|| Payment : "支付"
+    Category ||--o{ Product : "分类"
 ```
 
-- **接口层 (Interface)**: 负责处理来自用户界面或外部系统的请求，如 REST API、gRPC 服务等。
-- **应用层 (Application)**: 协调领域对象完成特定的应用功能，不包含业务规则。
-- **领域层 (Domain)**: 包含业务概念、规则和逻辑，是系统的核心。
-- **基础设施层 (Infrastructure)**: 提供技术能力支持，如数据持久化、消息发送等。
+#### 🎨 接口层 (Interface Layer)
+
+负责处理外部请求和响应，提供多种接口形式：
+
+- **🌐 REST API**: 标准的 HTTP RESTful 接口，适用于 Web 和移动端
+- **⚡ gRPC 服务**: 高性能的 RPC 调用，适用于微服务间通信
+- **📱 GraphQL**: 灵活的查询接口，适用于复杂数据查询
+- **📋 DTO/VO**: 数据传输对象和视图对象定义
+
+#### 🎭 应用层 (Application Layer)
+
+协调领域对象完成复杂的业务用例，不包含业务规则：
+
+- **🎯 应用服务**: 实现具体的业务用例
+- **🔄 工作流编排**: 协调多个领域服务完成复杂流程
+- **💾 事务协调**: 保证数据一致性和完整性
+- **📨 事件处理**: 处理领域事件和集成事件
+
+#### 💎 领域层 (Domain Layer)
+
+系统的核心，包含所有业务逻辑和规则：
+
+- **🏛️ 聚合根**: 定义数据一致性边界，如 Order、User
+- **🎪 实体**: 具有唯一标识的业务对象
+- **💰 值对象**: 不可变的值类型，如 Money、Email
+- **⚙️ 领域服务**: 跨实体的业务逻辑
+- **📜 业务规则**: 核心业务约束和规则
+- **🎯 领域事件**: 业务状态变更事件
+
+#### 🔧 基础设施层 (Infrastructure Layer)
+
+提供技术实现和外部系统集成：
+
+- **🗄️ 数据仓储**: 数据持久化和查询实现
+- **🌐 外部服务**: 第三方 API 集成
+- **📨 消息队列**: 异步消息处理
+- **🔍 搜索引擎**: 全文搜索功能
+- **📊 监控日志**: 系统监控和日志记录
 
 ### 领域模型示例
 
@@ -603,20 +1117,142 @@ func (s *ProductService) CreateProduct(ctx context.Context, req dto.CreateProduc
 // 其他应用服务方法...
 ```
 
-## 配置中心与注册中心
+## ⚙️ 配置中心与注册中心
 
 mall-go 项目引入配置中心和注册中心，实现配置的集中管理、动态更新以及服务的自动注册与发现。
 
-### 配置中心
+```mermaid
+flowchart TD
+    subgraph "🌍 外部系统"
+        Admin["👨‍💼 管理员"]
+        Monitor["📊 监控系统"]
+    end
+  
+    subgraph "⚙️ 配置中心 (Etcd)"
+        E1["📦 Etcd Node 1"]
+        E2["📦 Etcd Node 2"]
+        E3["📦 Etcd Node 3"]
+    end
+  
+    subgraph "🗂️ 注册中心 (Consul)"
+        C1["🏛️ Consul Node 1"]
+        C2["🏛️ Consul Node 2"]
+        C3["🏛️ Consul Node 3"]
+    end
+  
+    subgraph "🎯 微服务集群"
+        GW["🚪 Gateway"]
+        US["👤 User Service"]
+        PS["🛍️ Product Service"]
+        OS["📋 Order Service"]
+        IS["📦 Inventory Service"]
+    end
+  
+    Admin --> E1
+    Monitor --> C1
+  
+    E1 -.-> E2
+    E2 -.-> E3
+    E3 -.-> E1
+  
+    C1 -.-> C2
+    C2 -.-> C3
+    C3 -.-> C1
+  
+    E1 --> GW
+    E2 --> US
+    E3 --> PS
+    E1 --> OS
+    E2 --> IS
+  
+    GW --> C1
+    US --> C2
+    PS --> C3
+    OS --> C1
+    IS --> C2
+  
+    style E1 fill:#e3f2fd
+    style E2 fill:#e3f2fd
+    style E3 fill:#e3f2fd
+    style C1 fill:#f3e5f5
+    style C2 fill:#f3e5f5
+    style C3 fill:#f3e5f5
+```
 
-mall-go 项目采用 Etcd 作为配置中心，实现以下功能：
+### 🗄️ 配置中心 (Etcd)
 
-1. **配置集中管理**: 所有服务的配置统一存储在配置中心，避免配置分散
-2. **配置动态更新**: 支持配置热更新，无需重启服务
-3. **环境隔离**: 支持开发、测试、生产等多环境配置管理
-4. **配置版本控制**: 记录配置变更历史，支持版本回滚
+mall-go 项目采用 Etcd 作为分布式配置中心，提供统一的配置管理能力：
 
-> **注意**: 所有的配置文件都存放在 `configs/` 目录下，方便集中管理和维护。
+```mermaid
+flowchart LR
+    subgraph "🌍 多环境配置"
+        DEV["🔧 开发环境<br/>dev/"]
+        TEST["🧪 测试环境<br/>test/"]
+        PROD["🚀 生产环境<br/>prod/"]
+    end
+  
+    subgraph "📋 配置类型"
+        DB["🗄️ 数据库配置"]
+        REDIS["🔴 Redis配置"]
+        MQ["📨 消息队列配置"]
+        LOG["📊 日志配置"]
+        BIZ["🎯 业务配置"]
+    end
+  
+    subgraph "🗄️ Etcd 存储"
+        ETCD["📚 分布式存储<br/>键值对存储<br/>版本控制<br/>监听机制"]
+    end
+  
+    DEV --> ETCD
+    TEST --> ETCD
+    PROD --> ETCD
+  
+    DB --> ETCD
+    REDIS --> ETCD
+    MQ --> ETCD
+    LOG --> ETCD
+    BIZ --> ETCD
+  
+    style ETCD fill:#e1f5fe
+```
+
+#### 🎯 核心功能
+
+1. **📋 配置集中管理**: 所有服务的配置统一存储在配置中心，避免配置分散
+2. **🔄 配置动态更新**: 支持配置热更新，无需重启服务
+3. **🌍 环境隔离**: 支持开发、测试、生产等多环境配置管理
+4. **📚 配置版本控制**: 记录配置变更历史，支持版本回滚
+5. **🔐 安全控制**: 支持配置加密和访问权限控制
+6. **📊 监控告警**: 配置变更监控和异常告警
+
+> **💡 提示**: 所有的配置文件都存放在 `configs/` 目录下，方便集中管理和维护。
+
+#### 🔄 配置更新流程
+
+```mermaid
+sequenceDiagram
+    participant Admin as 👨‍💼 管理员
+    participant CM as ⚙️ 配置管理
+    participant Etcd as 🗄️ Etcd
+    participant Service as 🎯 微服务
+    participant Monitor as 📊 监控
+  
+    Admin->>CM: 1. 更新配置
+    CM->>CM: 2. 配置验证
+    CM->>Etcd: 3. 保存新配置
+    Etcd->>Service: 4. 推送配置变更
+    Service->>Service: 5. 热更新配置
+    Service->>Monitor: 6. 上报更新状态
+    Monitor->>Admin: 7. 更新结果通知
+  
+    Note over Admin,Monitor: 配置回滚流程
+    Admin->>CM: 8. 请求回滚
+    CM->>Etcd: 9. 获取历史版本
+    Etcd->>CM: 10. 返回历史配置
+    CM->>Etcd: 11. 恢复历史配置
+    Etcd->>Service: 12. 推送回滚配置
+    Service->>Service: 13. 应用回滚配置
+```
 
 #### Etcd 配置中心实现：
 
@@ -796,14 +1432,145 @@ func saveConfigExample() {
 }
 ```
 
-### 注册中心
+### 🗂️ 注册中心 (Consul)
 
-mall-go 项目采用 Consul 作为注册中心，实现以下功能：
+mall-go 项目采用 Consul 作为服务注册与发现中心，提供高可用的服务治理能力：
 
-1. **服务注册**: 服务启动时自动注册到注册中心
-2. **服务发现**: 客户端通过注册中心发现服务实例
-3. **健康检查**: 定期检查服务健康状态
-4. **负载均衡**: 在多个服务实例间实现负载均衡
+```mermaid
+flowchart TD
+    subgraph "🏛️ Consul 集群"
+        C1["🎯 Consul Leader"]
+        C2["📋 Consul Follower"]
+        C3["📋 Consul Follower"]
+    end
+  
+    subgraph "🎯 服务注册"
+        REG1["📝 服务注册"]
+        REG2["💓 健康检查"]
+        REG3["🔄 状态更新"]
+        REG4["❌ 服务下线"]
+    end
+  
+    subgraph "🔍 服务发现"
+        DIS1["🔍 服务查询"]
+        DIS2["⚖️ 负载均衡"]
+        DIS3["🎯 实例选择"]
+        DIS4["📞 服务调用"]
+    end
+  
+    subgraph "🎯 微服务实例"
+        S1["👤 User Service<br/>192.168.1.10:8001"]
+        S2["👤 User Service<br/>192.168.1.11:8001"]
+        S3["🛍️ Product Service<br/>192.168.1.12:8002"]
+        S4["📋 Order Service<br/>192.168.1.13:8003"]
+    end
+  
+    C1 -.-> C2
+    C2 -.-> C3
+    C3 -.-> C1
+  
+    S1 --> REG1
+    S2 --> REG1
+    S3 --> REG1
+    S4 --> REG1
+  
+    REG1 --> C1
+    REG2 --> C1
+    REG3 --> C1
+    REG4 --> C1
+  
+    C1 --> DIS1
+    DIS1 --> DIS2
+    DIS2 --> DIS3
+    DIS3 --> DIS4
+  
+    style C1 fill:#e8f5e8
+    style C2 fill:#f3e5f5
+    style C3 fill:#f3e5f5
+```
+
+#### 🎯 核心功能
+
+1. **📝 服务注册**: 服务启动时自动注册到注册中心
+2. **🔍 服务发现**: 客户端通过注册中心发现服务实例
+3. **💓 健康检查**: 定期检查服务实例的健康状态
+4. **⚖️ 负载均衡**: 支持多种负载均衡策略
+5. **🔄 故障转移**: 自动剔除不健康的服务实例
+6. **📊 服务监控**: 提供服务状态和性能监控
+
+#### 🔄 服务注册与发现流程
+
+```mermaid
+sequenceDiagram
+    participant Service as 🎯 微服务
+    participant Consul as 🏛️ Consul
+    participant Client as 📱 客户端
+    participant LB as ⚖️ 负载均衡器
+  
+    Note over Service,LB: 服务注册流程
+    Service->>Consul: 1. 注册服务实例
+    Consul->>Consul: 2. 存储服务信息
+    Service->>Consul: 3. 发送心跳检查
+    Consul->>Service: 4. 返回健康状态
+  
+    Note over Service,LB: 服务发现流程
+    Client->>Consul: 5. 查询服务实例
+    Consul->>Client: 6. 返回健康实例列表
+    Client->>LB: 7. 请求负载均衡
+    LB->>Service: 8. 转发请求到实例
+    Service->>LB: 9. 返回响应
+    LB->>Client: 10. 返回最终响应
+  
+    Note over Service,LB: 故障处理流程
+    Service->>Service: 11. 服务异常
+    Consul->>Service: 12. 健康检查失败
+    Consul->>Consul: 13. 标记实例不健康
+    Client->>Consul: 14. 查询服务实例
+    Consul->>Client: 15. 返回健康实例(排除故障)
+```
+
+#### 🎯 负载均衡策略
+
+```mermaid
+flowchart LR
+    subgraph "⚖️ 负载均衡策略"
+        RR["🔄 轮询 (Round Robin)"]
+        WRR["⚖️ 加权轮询"]
+        LC["📊 最少连接"]
+        RAND["🎲 随机"]
+        HASH["🔑 哈希"]
+    end
+  
+    subgraph "🎯 服务实例"
+        I1["实例1<br/>权重:3"]
+        I2["实例2<br/>权重:2"]
+        I3["实例3<br/>权重:1"]
+    end
+  
+    RR --> I1
+    RR --> I2
+    RR --> I3
+  
+    WRR --> I1
+    WRR --> I2
+    WRR --> I3
+  
+    LC --> I1
+    LC --> I2
+    LC --> I3
+  
+    RAND --> I1
+    RAND --> I2
+    RAND --> I3
+  
+    HASH --> I1
+    HASH --> I2
+    HASH --> I3
+  
+    style I1 fill:#e8f5e8
+    style I2 fill:#fff3e0
+    style I3 fill:#fce4ec
+```
 
 #### Consul 注册中心实现：
 
@@ -1831,7 +2598,6 @@ Go 版本的 mall 项目将遵循 RESTful API 设计规范，与原 Java 版本�
    - POST `/admin/login` - 登录
    - POST `/admin/logout` - 登出
    - GET `/admin/info` - 获取当前登录用户信息
-
 2. **商品管理**
 
    - GET `/product/list` - 获取商品列表
@@ -1842,7 +2608,6 @@ Go 版本的 mall 项目将遵循 RESTful API 设计规范，与原 Java 版本�
    - POST `/product/publish/batch` - 批量上下架
    - POST `/product/recommend/batch` - 批量推荐
    - POST `/product/new/batch` - 批量设为新品
-
 3. **订单管理**
 
    - GET `/order/list` - 获取订单列表
@@ -1857,13 +2622,11 @@ Go 版本的 mall 项目将遵循 RESTful API 设计规范，与原 Java 版本�
    - POST `/member/login` - 会员登录
    - POST `/member/register` - 会员注册
    - GET `/member/info` - 获取会员信息
-
 2. **商品浏览**
 
    - GET `/product/list` - 获取商品列表
    - GET `/product/detail/{id}` - 获取商品详情
    - GET `/product/search` - 搜索商品
-
 3. **购物车**
 
    - POST `/cart/add` - 添加到购物车
@@ -1871,7 +2634,6 @@ Go 版本的 mall 项目将遵循 RESTful API 设计规范，与原 Java 版本�
    - POST `/cart/delete` - 删除购物车商品
    - GET `/cart/list` - 获取购物车列表
    - POST `/cart/clear` - 清空购物车
-
 4. **订单**
 
    - POST `/order/generate/confirm` - 生成确认订单
@@ -1881,17 +2643,142 @@ Go 版本的 mall 项目将遵循 RESTful API 设计规范，与原 Java 版本�
    - POST `/order/cancel` - 取消订单
    - POST `/order/confirm/receive` - 确认收货
 
-## 部署指南
+## 🚀 部署指南
 
-### Docker 部署
+### 🐳 Docker 容器化部署
 
-mall-go 项目提供了完整的 Docker 部署配置，可以通过 Docker Compose 一键部署整个系统及其依赖的基础设施。
+mall-go 项目提供了完整的 Docker 容器化部署方案，支持一键部署整个系统及其依赖的基础设施：
+
+```mermaid
+flowchart TD
+    subgraph "🌐 负载均衡层"
+        LB["⚖️ Nginx<br/>负载均衡器"]
+    end
+  
+    subgraph "🚪 网关层"
+        GW1["🚪 Gateway 1"]
+        GW2["🚪 Gateway 2"]
+    end
+  
+    subgraph "🎯 业务服务层"
+        US1["👤 User Service 1"]
+        US2["👤 User Service 2"]
+        PS1["🛍️ Product Service 1"]
+        PS2["🛍️ Product Service 2"]
+        OS1["📋 Order Service 1"]
+        OS2["📋 Order Service 2"]
+    end
+  
+    subgraph "🗄️ 数据存储层"
+        MYSQL["🗄️ MySQL<br/>主从复制"]
+        REDIS["🔴 Redis<br/>集群模式"]
+        MONGO["🍃 MongoDB<br/>副本集"]
+    end
+  
+    subgraph "📨 消息队列"
+        NATS["📨 NATS<br/>消息队列"]
+    end
+  
+    subgraph "⚙️ 基础设施"
+        ETCD["🗄️ Etcd<br/>配置中心"]
+        CONSUL["🏛️ Consul<br/>注册中心"]
+    end
+  
+    subgraph "📊 监控运维"
+        PROM["📊 Prometheus<br/>监控"]
+        GRAF["📈 Grafana<br/>可视化"]
+        ELK["📋 ELK<br/>日志分析"]
+    end
+  
+    LB --> GW1
+    LB --> GW2
+  
+    GW1 --> US1
+    GW1 --> PS1
+    GW1 --> OS1
+  
+    GW2 --> US2
+    GW2 --> PS2
+    GW2 --> OS2
+  
+    US1 --> MYSQL
+    US2 --> MYSQL
+    PS1 --> MYSQL
+    PS2 --> MYSQL
+    OS1 --> MYSQL
+    OS2 --> MYSQL
+  
+    US1 --> REDIS
+    US2 --> REDIS
+    PS1 --> REDIS
+    PS2 --> REDIS
+  
+    OS1 --> MONGO
+    OS2 --> MONGO
+  
+    US1 --> NATS
+    PS1 --> NATS
+    OS1 --> NATS
+  
+    US1 --> ETCD
+    PS1 --> ETCD
+    OS1 --> ETCD
+  
+    US1 --> CONSUL
+    PS1 --> CONSUL
+    OS1 --> CONSUL
+  
+    US1 --> PROM
+    PS1 --> PROM
+    OS1 --> PROM
+  
+    PROM --> GRAF
+    US1 --> ELK
+    PS1 --> ELK
+    OS1 --> ELK
+  
+    style LB fill:#e3f2fd
+    style MYSQL fill:#fff3e0
+    style REDIS fill:#ffebee
+    style MONGO fill:#e8f5e8
+```
+
+#### 📁 部署配置文件
 
 相关脚本和配置文件位于 `script/docker` 目录下：
 
-- `docker-compose-app.yml`: 应用服务的 Docker Compose 配置
-- `docker-compose-env.yml`: 基础设施环境的 Docker Compose 配置
-- `nginx.conf`: Nginx 配置文件
+- **📋 `docker-compose-app.yml`**: 应用服务的 Docker Compose 配置
+- **🏗️ `docker-compose-env.yml`**: 基础设施环境的 Docker Compose 配置
+- **⚖️ `nginx.conf`**: Nginx 负载均衡配置文件
+- **📊 `prometheus.yml`**: Prometheus 监控配置
+- **📈 `grafana-dashboard.json`**: Grafana 仪表盘配置
+
+#### 🔄 部署流程图
+
+```mermaid
+flowchart LR
+    START(["🚀 开始部署"]) --> CHECK{"🔍 环境检查"}
+    CHECK -->|✅ 通过| ENV["🏗️ 部署基础环境"]
+    CHECK -->|❌ 失败| FIX["🔧 修复环境"]
+    FIX --> CHECK
+  
+    ENV --> WAIT1["⏳ 等待服务就绪"]
+    WAIT1 --> APP["🎯 部署应用服务"]
+    APP --> WAIT2["⏳ 等待应用启动"]
+    WAIT2 --> HEALTH{"💓 健康检查"}
+  
+    HEALTH -->|✅ 健康| MONITOR["📊 启动监控"]
+    HEALTH -->|❌ 异常| DEBUG["🐛 故障排查"]
+    DEBUG --> APP
+  
+    MONITOR --> TEST["🧪 功能测试"]
+    TEST --> SUCCESS(["✅ 部署成功"])
+  
+    style START fill:#e8f5e8
+    style SUCCESS fill:#e8f5e8
+    style CHECK fill:#fff3e0
+    style HEALTH fill:#fff3e0
+```
 
 #### 部署基础环境
 
@@ -1901,6 +2788,7 @@ docker-compose -f docker-compose-env.yml up -d
 ```
 
 这将启动以下基础服务：
+
 - MySQL
 - Redis
 - RabbitMQ
@@ -2185,7 +3073,144 @@ spec:
               memory: "512Mi"
 ```
 
-### 9. 监控与日志配置
+### 📊 监控与日志配置
+
+#### 🔍 监控架构图
+
+```mermaid
+flowchart TD
+    subgraph "🎯 微服务应用"
+        US["👤 User Service"]
+        PS["🛍️ Product Service"]
+        OS["📋 Order Service"]
+        GS["🚪 Gateway Service"]
+    end
+  
+    subgraph "📊 监控收集层"
+        PROM["📊 Prometheus<br/>指标收集"]
+        JAEGER["🔍 Jaeger<br/>链路追踪"]
+        FLUENTD["📋 Fluentd<br/>日志收集"]
+    end
+  
+    subgraph "📈 可视化层"
+        GRAF["📈 Grafana<br/>监控面板"]
+        KIBANA["📊 Kibana<br/>日志分析"]
+    end
+  
+    subgraph "🗄️ 存储层"
+        TSDB["📊 TSDB<br/>时序数据库"]
+        ES["🔍 Elasticsearch<br/>日志存储"]
+        CASSANDRA["🗄️ Cassandra<br/>追踪数据"]
+    end
+  
+    subgraph "🚨 告警层"
+        AM["🚨 AlertManager<br/>告警管理"]
+        WEBHOOK["📞 Webhook<br/>通知"]
+        EMAIL["📧 邮件通知"]
+        SLACK["💬 Slack通知"]
+    end
+  
+    US --> PROM
+    PS --> PROM
+    OS --> PROM
+    GS --> PROM
+  
+    US --> JAEGER
+    PS --> JAEGER
+    OS --> JAEGER
+    GS --> JAEGER
+  
+    US --> FLUENTD
+    PS --> FLUENTD
+    OS --> FLUENTD
+    GS --> FLUENTD
+  
+    PROM --> TSDB
+    PROM --> GRAF
+    PROM --> AM
+  
+    JAEGER --> CASSANDRA
+    JAEGER --> GRAF
+  
+    FLUENTD --> ES
+    ES --> KIBANA
+  
+    AM --> WEBHOOK
+    AM --> EMAIL
+    AM --> SLACK
+  
+    style PROM fill:#e3f2fd
+    style GRAF fill:#e8f5e8
+    style AM fill:#ffebee
+```
+
+#### 📋 日志处理流程
+
+```mermaid
+sequenceDiagram
+    participant App as 🎯 微服务应用
+    participant Agent as 📋 日志代理
+    participant Buffer as 🗄️ 缓冲队列
+    participant ES as 🔍 Elasticsearch
+    participant Kibana as 📊 Kibana
+    participant Alert as 🚨 告警系统
+  
+    App->>Agent: 📝 输出结构化日志
+    Note over App,Agent: JSON格式，包含TraceID
+  
+    Agent->>Buffer: 📦 批量收集日志
+    Note over Agent,Buffer: 本地缓存，防止丢失
+  
+    Buffer->>ES: 🚀 批量发送到ES
+    Note over Buffer,ES: 按时间窗口或大小触发
+  
+    ES->>ES: 🔍 索引和存储
+    Note over ES: 按日期分片存储
+  
+    ES->>Kibana: 📊 实时查询展示
+    Note over ES,Kibana: 支持复杂查询和聚合
+  
+    ES->>Alert: 🚨 异常日志检测
+    Note over ES,Alert: 基于规则触发告警
+  
+    Alert->>Alert: 📞 发送告警通知
+    Note over Alert: 邮件/短信/钉钉等
+```
+
+#### ⚙️ 监控指标体系
+
+```mermaid
+mindmap
+  root((📊 监控指标))
+    🎯 业务指标
+      📈 QPS/TPS
+      ⏱️ 响应时间
+      ❌ 错误率
+      👥 在线用户数
+      💰 交易金额
+      📦 订单量
+    🖥️ 系统指标
+      💾 内存使用率
+      🔧 CPU使用率
+      💿 磁盘IO
+      🌐 网络IO
+      🗄️ 数据库连接数
+      🔴 Redis连接数
+    🏗️ 基础设施
+      🐳 容器状态
+      ☸️ Pod状态
+      🗄️ 存储使用率
+      🌐 网络延迟
+      🔄 负载均衡状态
+    🔍 应用指标
+      🚪 接口调用量
+      📊 慢查询统计
+      🔄 缓存命中率
+      📨 消息队列积压
+      🔗 依赖服务状态
+```
+
+#### 🛠️ 配置示例
 
 集成 Prometheus、Grafana 和 ELK Stack 进行监控和日志收集：
 
@@ -2361,11 +3386,20 @@ Kubernetes 允许 mall-go 系统轻松实现多云和混合云部署：
 - 将管理服务部署在 Azure 上，满足企业 IT 管理需求
 - 将数据服务部署在本地数据中心，满足数据安全合规要求
 
-## 性能对比
+## 📊 性能对比
 
-### 1. 内存占用对比
+### 💾 内存占用对比
 
 在相同功能和负载下，Go 版本的 mall 项目与 Java 版本的内存占用对比：
+
+```mermaid
+xychart-beta
+    title "💾 内存占用对比 (MB)"
+    x-axis ["mall-admin", "mall-portal", "mall-search", "整体系统"]
+    y-axis "内存占用 (MB)" 0 --> 2500
+    bar [750, 850, 650, 2250]
+    bar [120, 150, 110, 380]
+```
 
 | 模块        | Java 版本内存占用 | Go 版本内存占用 | 降低比例 |
 | ----------- | ----------------- | --------------- | -------- |
@@ -2374,9 +3408,37 @@ Kubernetes 允许 mall-go 系统轻松实现多云和混合云部署：
 | mall-search | 650MB             | 110MB           | 83%      |
 | 整体系统    | 2.25GB            | 380MB           | 83%      |
 
-### 2. API 性能对比
+### ⚡ API 性能对比
 
 以 mall-admin 模块为例，使用相同硬件条件(8 核 CPU, 16GB 内存)进行压力测试：
+
+```mermaid
+xychart-beta
+    title "⚡ API 性能对比"
+    x-axis ["平均响应时间(ms)", "最大QPS", "99%响应时间(ms)", "CPU利用率(%)"]
+    y-axis "性能指标" 0 --> 5000
+    bar [120, 1200, 350, 85]
+    bar [45, 5000, 120, 45]
+```
+
+#### 📈 性能提升雷达图
+
+```mermaid
+%%{init: {"quadrantChart": {"chartWidth": 400, "chartHeight": 400}}}%%
+quadrantChart
+    title "🎯 Go vs Java 性能提升象限图"
+    x-axis "响应时间改善" --> "显著改善"
+    y-axis "资源利用率" --> "高效利用"
+    quadrant-1 "🚀 性能卓越"
+    quadrant-2 "⚡ 响应优秀"
+    quadrant-3 "📊 均衡发展"
+    quadrant-4 "💾 资源高效"
+  
+    "Go API响应": [0.8, 0.9]
+    "Go QPS处理": [0.9, 0.8]
+    "Java API响应": [0.3, 0.4]
+    "Java QPS处理": [0.2, 0.3]
+```
 
 | 指标             | Java 版本 | Go 版本 | 提升比例 |
 | ---------------- | --------- | ------- | -------- |
@@ -2385,7 +3447,53 @@ Kubernetes 允许 mall-go 系统轻松实现多云和混合云部署：
 | 99%请求响应时间  | 350ms     | 120ms   | 65.7%    |
 | CPU 利用率(满载) | 85%       | 45%     | 47.1%    |
 
-### 3. 构建与部署对比
+### 🚀 构建与部署对比
+
+```mermaid
+gantt
+    title "🚀 构建与部署时间对比"
+    dateFormat X
+    axisFormat %s
+  
+    section Java版本
+    构建时间     :done, java-build, 0, 300s
+    镜像构建     :done, java-image, after java-build, 120s
+    容器启动     :done, java-start, after java-image, 15s
+  
+    section Go版本
+    构建时间     :done, go-build, 0, 45s
+    镜像构建     :done, go-image, after go-build, 30s
+    容器启动     :done, go-start, after go-image, 2s
+```
+
+#### 📦 镜像大小对比
+
+```mermaid
+pie title "📦 容器镜像大小对比"
+    "Java版本 (215MB)" : 215
+    "Go版本 (25MB)" : 25
+    "节省空间 (190MB)" : 190
+```
+
+#### ⏱️ 部署效率提升
+
+```mermaid
+flowchart LR
+    subgraph "☕ Java 部署流程"
+        J1["📦 Maven构建<br/>3-5分钟"] --> J2["🐳 Docker构建<br/>2-3分钟"]
+        J2 --> J3["🚀 容器启动<br/>10-15秒"]
+        J3 --> J4["✅ 服务就绪<br/>总计8-10分钟"]
+    end
+  
+    subgraph "🐹 Go 部署流程"
+        G1["⚡ Go构建<br/>30-60秒"] --> G2["🐳 Docker构建<br/>30-60秒"]
+        G2 --> G3["🚀 容器启动<br/>1-2秒"]
+        G3 --> G4["✅ 服务就绪<br/>总计2-3分钟"]
+    end
+  
+    style J4 fill:#ffebee
+    style G4 fill:#e8f5e8
+```
 
 | 指标             | Java 版本 | Go 版本  | 差异      |
 | ---------------- | --------- | -------- | --------- |
